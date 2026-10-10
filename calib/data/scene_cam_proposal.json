@@ -1,0 +1,68 @@
+{
+ "note": "Overhead camera pose from solve.py scene_robot on 9 still poses of a 100 s sweep (2026-10-08, new desk layout + lamp). NOT applied: calib.json must stay unchanged while sim_demos/takeover1 is recording (it uses the old placeholder camera). Apply after: SCENE_CAM_POS, SCENE_CAM_QUAT, SCENE_K, SCENE_DIST.",
+ "SCENE_CAM_POS": [
+  0.34296,
+  -0.02852,
+  0.81007
+ ],
+ "SCENE_CAM_QUAT": [
+  0.734877,
+  -0.670681,
+  -0.087921,
+  0.049121
+ ],
+ "SCENE_K": [
+  611.1055744715432,
+  0.0,
+  325.06726992200475,
+  0.0,
+  610.5622555372147,
+  241.7925878456112,
+  0.0,
+  0.0,
+  1.0
+ ],
+ "SCENE_DIST": [
+  0.14982692504559605,
+  -0.24818774943216712,
+  0.0,
+  0.0,
+  0.0
+ ],
+ "snaps": [
+  "sw002",
+  "sw128",
+  "sw306",
+  "sw468",
+  "sw495",
+  "sw512",
+  "sw539",
+  "sw555",
+  "sw621"
+ ],
+ "verdict": "WARN: mean IoU 0.58 (lamp hotspot segmented as arm); boundary median 1-2 px",
+ "subset_spread_px_over_workspace": {
+  "fitted_offsets": [
+   1.5,
+   3.8
+  ],
+  "drop_two_worst": [
+   2.8,
+   7.7
+  ],
+  "subsetA": [
+   0.6,
+   1.4
+  ],
+  "subsetB": [
+   6.4,
+   11.0
+  ]
+ },
+ "joint_offsets_deg_suggested": {
+  "shoulder_lift": -0.2,
+  "elbow_flex": -4.5,
+  "wrist_flex": -3.0,
+  "note": "consistent across subsets (elbow -2.5..-4.8): the follower's LeRobot zero may differ from the URDF; check before final demos"
+ }
+}

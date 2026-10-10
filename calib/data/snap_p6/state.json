@@ -1,0 +1,74 @@
+{
+ "mode": "teleop",
+ "torque": true,
+ "synced": true,
+ "follower": {
+  "shoulder_pan": 4.835164835164835,
+  "shoulder_lift": -103.16483516483517,
+  "elbow_flex": 95.78021978021978,
+  "wrist_flex": 45.97802197802198,
+  "wrist_roll": -1.010989010989011,
+  "gripper": 34.34011818778726
+ },
+ "leader": {
+  "shoulder_pan": 5.230769230769231,
+  "shoulder_lift": -103.07692307692308,
+  "elbow_flex": 96.17582417582418,
+  "wrist_flex": 46.065934065934066,
+  "wrist_roll": -0.8351648351648352,
+  "gripper": 34.511092851273624
+ },
+ "targets": {
+  "shoulder_pan": -4.483516483516484,
+  "shoulder_lift": -104.13186813186813,
+  "elbow_flex": 94.98901098901099,
+  "wrist_flex": 58.81318681318681,
+  "wrist_roll": -0.04395604395604396,
+  "gripper": 20.945502298095864
+ },
+ "limits": {
+  "shoulder_pan": [
+   -73.14285714285714,
+   73.14285714285714
+  ],
+  "shoulder_lift": [
+   -105.01098901098901,
+   105.01098901098901
+  ],
+  "elbow_flex": [
+   -97.8021978021978,
+   97.8021978021978
+  ],
+  "wrist_flex": [
+   -103.2967032967033,
+   103.2967032967033
+  ],
+  "wrist_roll": [
+   -180.0,
+   180.0
+  ],
+  "gripper": [
+   0.0,
+   100.0
+  ]
+ },
+ "leader_connected": true,
+ "hz": 59.7,
+ "errors": 0,
+ "message": "Teleop",
+ "feeds": {
+  "wrist": {
+   "status": "ok"
+  },
+  "scene": {
+   "status": "ok"
+  },
+  "depth": {
+   "status": "waiting for the depth sensor to appear on USB"
+  }
+ },
+ "recording": {
+  "phase": "idle",
+  "message": ""
+ }
+}

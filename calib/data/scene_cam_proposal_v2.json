@@ -1,0 +1,39 @@
+{
+ "SCENE_CAM_POS": [
+  0.31886,
+  -0.02005,
+  0.82517
+ ],
+ "SCENE_CAM_QUAT": [
+  0.735655,
+  -0.672441,
+  -0.07038,
+  0.041002
+ ],
+ "previous": {
+  "SCENE_CAM_POS": [
+   0.34296,
+   -0.02852,
+   0.81007
+  ],
+  "SCENE_CAM_QUAT": [
+   0.734877,
+   -0.670681,
+   -0.087921,
+   0.049121
+  ]
+ },
+ "date": "2026-10-09",
+ "method": "solve.py scene_robot on 22 still frames of the real episodes (grasp/release/rest) + 9 sweep snapshots, joint readings corrected by units.py-style offsets (0, -0.2, -4.5, -3.0, -90 deg); wrist_roll -90 fixed a gripper-silhouette mismatch that biased the 2026-10-08 solve by ~3 cm",
+ "fit": {
+  "mean_iou": 0.723,
+  "boundary_px": 1.53,
+  "episode_frames_iou": "0.67-0.80",
+  "verdict": "WARN (sweep snapshots < 0.75 IoU)",
+  "residual_joint_offsets_deg": {
+   "shoulder_lift": -1.61,
+   "elbow_flex": 0.37,
+   "wrist_flex": 1.88
+  }
+ }
+}

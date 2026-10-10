@@ -1,0 +1,1267 @@
+{
+ "WRIST_CAM_POS": [
+  0.002572,
+  0.064975,
+  -0.011729
+ ],
+ "WRIST_CAM_QUAT": [
+  -0.233446,
+  0.001345,
+  0.002407,
+  0.972366
+ ],
+ "convention": "env_cfg CameraCfg.OffsetCfg(pos, rot, convention='opengl') under {ENV_REGEX_NS}/Robot/gripper/wrist_cam: camera prim pose in the USD 'gripper' prim frame (== URDF gripper_link), camera looks along -z, +y up, quat xyzw",
+ "jaw_angle_rad": 0.2436,
+ "jaw_angle_lerobot": 21.8,
+ "jaw_angle_note": "gripper angle while the 24 intr_wrist frames were taken (fitted); LeRobot 0..100 via so101_r2s2r/units.py (linear map, itself unverified)",
+ "nvidia_pose": {
+  "WRIST_CAM_POS": [
+   -0.00189,
+   0.05226,
+   -0.05853
+  ],
+  "WRIST_CAM_QUAT": [
+   -0.30071,
+   0.0,
+   0.0,
+   0.95372
+  ],
+  "best_jaw_angle_rad": 0.0716
+ },
+ "difference_vs_nvidia": {
+  "d_pos_mm": [
+   4.461668966806544,
+   12.714807900565825,
+   46.8011272612736
+  ],
+  "d_pos_norm_mm": 48.702344325951934,
+  "d_rot_deg": 8.006371168829864,
+  "d_optical_axis_deg": 8.000369886189885,
+  "d_roll_deg": -0.30421285763226324
+ },
+ "camera_description": {
+  "fitted": {
+   "centre_mm": [
+    2.571668966806544,
+    64.97480790056582,
+    -11.7288727387264
+   ],
+   "view_dir": [
+    -0.0014916803514619227,
+    -0.45399680072612447,
+    -0.8910020649920924
+   ],
+   "angle_to_jaw_axis_deg": 27.000562766542924,
+   "image_right": [
+    0.9999847920130036,
+    0.004053563434185493,
+    -0.0037395676481363706
+   ],
+   "image_down": [
+    0.0053094851387885614,
+    -0.8909940928838579,
+    0.45398384972775463
+   ]
+  },
+  "nvidia": {
+   "centre_mm": [
+    -1.89,
+    52.26,
+    -58.53
+   ],
+   "view_dir": [
+    0.0,
+    -0.5735814972963588,
+    -0.8191485005536342
+   ],
+   "angle_to_jaw_axis_deg": 35.000353989758075,
+   "image_right": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "image_down": [
+    0.0,
+    -0.8191485005536342,
+    0.5735814972963588
+   ]
+  }
+ },
+ "fit_numpy": {
+  "fitted": {
+   "iou": 0.9802319196356472,
+   "n_rendered": 30643,
+   "n_segmented": 30663,
+   "boundary_mean_px": 0.6041193148168289,
+   "boundary_median_px": 0.0,
+   "boundary_p90_px": 1.4142135623730951,
+   "boundary_max_px": 3.0,
+   "render_to_seg_mean_px": 0.6059962241031396,
+   "seg_to_render_mean_px": 0.6022333992479543,
+   "per_jaw_iou": {
+    "left": 0.9864301276065982,
+    "right": 0.9735463945212838
+   },
+   "visible_labels_px": {
+    "gripper_body": 16021,
+    "servo": 0,
+    "moving_jaw": 14622
+   }
+  },
+  "nvidia_at_its_best_q": {
+   "iou": 0.4754317580447833,
+   "n_rendered": 21194,
+   "n_segmented": 30663,
+   "boundary_mean_px": 26.13922513767094,
+   "boundary_median_px": 26.0,
+   "boundary_p90_px": 48.0,
+   "boundary_max_px": 70.0,
+   "render_to_seg_mean_px": 21.74716580433818,
+   "seg_to_render_mean_px": 29.33000144797123,
+   "per_jaw_iou": {
+    "left": 0.3280998821133855,
+    "right": 0.6422202001819837
+   },
+   "visible_labels_px": {
+    "gripper_body": 8922,
+    "servo": 0,
+    "moving_jaw": 12272
+   }
+  },
+  "nvidia_at_fitted_q": {
+   "iou": 0.15837469134293328,
+   "n_rendered": 16718,
+   "n_segmented": 30663,
+   "boundary_mean_px": 45.079571660824485,
+   "boundary_median_px": 39.11521443121589,
+   "boundary_p90_px": 105.61627430064526,
+   "boundary_max_px": 127.91012469699183,
+   "render_to_seg_mean_px": 30.129992917678845,
+   "seg_to_render_mean_px": 53.18562923268369,
+   "per_jaw_iou": {
+    "left": 0.3280998821133855,
+    "right": 0.015961512521918977
+   },
+   "visible_labels_px": {
+    "gripper_body": 8922,
+    "servo": 0,
+    "moving_jaw": 7796
+   }
+  },
+  "score_soft_iou": 0.972221890889434,
+  "start": "nvidia +shift",
+  "runtime_s": 303.5951838493347,
+  "n_renders": 140027,
+  "stage1_ranking": [
+   [
+    0.9257810606512423,
+    "rand156 +shift"
+   ],
+   [
+    0.9249120311447181,
+    "grid y+0.075 z-0.040 tz-0.10 r+1 +shift"
+   ],
+   [
+    0.9236994377353079,
+    "grid y+0.060 z-0.015 tz-0.10 r+1 +shift"
+   ],
+   [
+    0.9213911831922067,
+    "grid y+0.060 z-0.040 tz-0.10 r+1 +shift"
+   ],
+   [
+    0.9050140661343066,
+    "nvidia +shift"
+   ],
+   [
+    0.8629887458236207,
+    "grid y-0.060 z-0.040 tz-0.10 r-1 +shift"
+   ],
+   [
+    0.8591532022186044,
+    "rand083 +shift"
+   ],
+   [
+    0.8548975779855164,
+    "grid y+0.075 z-0.065 tz-0.10 r+1 +shift"
+   ],
+   [
+    0.8426639113877952,
+    "rand015 +shift"
+   ],
+   [
+    0.8046451235497669,
+    "rand193 +shift"
+   ]
+  ],
+  "basin_hopping_chains_vs_best": [
+   {
+    "score_half_res": 0.9279400250995161,
+    "start": "nvidia +shift",
+    "role": "distinct basin",
+    "start_centre_mm": [
+     5.948561453525878,
+     68.40789661936032,
+     -28.889798359690626
+    ],
+    "end_centre_mm": [
+     2.5108443821073325,
+     64.98260554063877,
+     -11.968935778598865
+    ],
+    "d_pos_mm": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "d_pos_norm_mm": 0.0,
+    "d_rot_deg": 0.0,
+    "d_q_rad": 0.0
+   },
+   {
+    "score_half_res": 0.9277545069366282,
+    "start": "grid y+0.075 z-0.040 tz-0.10 r+1 +shift",
+    "role": "distinct basin",
+    "start_centre_mm": [
+     7.052772323101676,
+     65.38811062500521,
+     -17.59985338607184
+    ],
+    "end_centre_mm": [
+     3.5892173633627906,
+     65.43381205139873,
+     -13.0020008032498
+    ],
+    "d_pos_mm": [
+     1.078372981255458,
+     0.45120651075995777,
+     -1.0330650246509339
+    ],
+    "d_pos_norm_mm": 1.560031713527323,
+    "d_rot_deg": 0.826855544183032,
+    "d_q_rad": -0.00278524294351698
+   },
+   {
+    "score_half_res": 0.9276809087598327,
+    "start": "rand156 +shift",
+    "role": "best",
+    "start_centre_mm": [
+     -0.33320596361831667,
+     64.53841970483573,
+     -8.33677530741681
+    ],
+    "end_centre_mm": [
+     2.918024768217154,
+     64.61355937801568,
+     -10.662401909070697
+    ],
+    "d_pos_mm": [
+     0.4071803861098212,
+     -0.3690461626230934,
+     1.3065338695281685
+    ],
+    "d_pos_norm_mm": 1.4173996222673488,
+    "d_rot_deg": 0.7626941346076361,
+    "d_q_rad": 0.0046707045768834
+   },
+   {
+    "score_half_res": 0.9276546418243211,
+    "start": "grid y+0.075 z-0.065 tz-0.10 r+1 +shift",
+    "role": "hypothesis: camera near NVIDIA's position (< 20 mm)",
+    "start_centre_mm": [
+     -1.0019667389275355,
+     62.5695396701732,
+     -61.488894742651496
+    ],
+    "end_centre_mm": [
+     4.3389739973132695,
+     64.92633786666292,
+     -13.40432278286951
+    ],
+    "d_pos_mm": [
+     1.828129615205937,
+     -0.05626767397584609,
+     -1.4353870042706445
+    ],
+    "d_pos_norm_mm": 2.3249859769806602,
+    "d_rot_deg": 1.1640913884262778,
+    "d_q_rad": -0.0070768760733853076
+   },
+   {
+    "score_half_res": 0.9275880862316845,
+    "start": "grid y+0.060 z-0.040 tz-0.10 r+1 +shift",
+    "role": "distinct basin",
+    "start_centre_mm": [
+     -0.9181839703927562,
+     66.27866303756672,
+     -14.884988580952609
+    ],
+    "end_centre_mm": [
+     0.9801577265266441,
+     65.24597611947559,
+     -10.27941803616545
+    ],
+    "d_pos_mm": [
+     -1.5306866555806886,
+     0.2633705788368107,
+     1.689517742433415
+    ],
+    "d_pos_norm_mm": 2.2949588016709437,
+    "d_rot_deg": 0.9585334105246823,
+    "d_q_rad": 0.008722824031936971
+   },
+   {
+    "score_half_res": 0.8793238611633841,
+    "start": "grid y-0.060 z-0.040 tz-0.10 r-1 +shift",
+    "role": "hypothesis: camera on the opposite (-y) side",
+    "start_centre_mm": [
+     -19.638823558252923,
+     -59.89177130012085,
+     -45.40582970332084
+    ],
+    "end_centre_mm": [
+     -23.443792336088276,
+     -56.39640818606256,
+     -37.19881395294845
+    ],
+    "d_pos_mm": [
+     -25.95463671819561,
+     -121.37901372670132,
+     -25.22987817434958
+    ],
+    "d_pos_norm_mm": 126.66118147693388,
+    "d_rot_deg": 163.19874412353678,
+    "d_q_rad": -0.02158193938731967
+   }
+  ],
+  "profile_centre_displacement": [
+   {
+    "axis": "x (image right)",
+    "axis_in_gripper_frame": [
+     0.9999847920130036,
+     0.004053563434185493,
+     -0.0037395676481363706
+    ],
+    "d_mm": -3.0,
+    "iou": 0.9694595202158065,
+    "boundary_mean_px": 0.9674049741796718,
+    "rot_refit_deg": 1.723336773096496,
+    "dq_deg": 0.16995989224672592
+   },
+   {
+    "axis": "x (image right)",
+    "axis_in_gripper_frame": [
+     0.9999847920130036,
+     0.004053563434185493,
+     -0.0037395676481363706
+    ],
+    "d_mm": 3.0,
+    "iou": 0.9719148385426778,
+    "boundary_mean_px": 0.8719667710864971,
+    "rot_refit_deg": 1.799836817602658,
+    "dq_deg": 0.1609229499285808
+   },
+   {
+    "axis": "y (image down)",
+    "axis_in_gripper_frame": [
+     0.0053094851387885614,
+     -0.8909940928838579,
+     0.45398384972775463
+    ],
+    "d_mm": -3.0,
+    "iou": 0.9621593697533256,
+    "boundary_mean_px": 1.2177117888002005,
+    "rot_refit_deg": 1.8147082149654417,
+    "dq_deg": 0.2953936265868352
+   },
+   {
+    "axis": "y (image down)",
+    "axis_in_gripper_frame": [
+     0.0053094851387885614,
+     -0.8909940928838579,
+     0.45398384972775463
+    ],
+    "d_mm": 3.0,
+    "iou": 0.9589732199517705,
+    "boundary_mean_px": 1.352842172273755,
+    "rot_refit_deg": 1.8578756440740816,
+    "dq_deg": -0.4107010541381989
+   },
+   {
+    "axis": "z (optical axis)",
+    "axis_in_gripper_frame": [
+     -0.0014916803514619227,
+     -0.45399680072612447,
+     -0.8910020649920924
+    ],
+    "d_mm": -3.0,
+    "iou": 0.9697499676123851,
+    "boundary_mean_px": 0.9476671610737414,
+    "rot_refit_deg": 0.362336482146061,
+    "dq_deg": 1.0785745114210967
+   },
+   {
+    "axis": "z (optical axis)",
+    "axis_in_gripper_frame": [
+     -0.0014916803514619227,
+     -0.45399680072612447,
+     -0.8910020649920924
+    ],
+    "d_mm": 3.0,
+    "iou": 0.965356132600197,
+    "boundary_mean_px": 1.117536721436481,
+    "rot_refit_deg": 0.35703233360994924,
+    "dq_deg": -0.9911999358163472
+   }
+  ]
+ },
+ "segmentation": {
+  "frames": "/mnt/secondary/TestingGrounds/so101_r2s2r/calib/data/intr_wrist",
+  "n_frames": 24,
+  "method": "25th-percentile grey over frames, undistorted, hysteresis threshold (Otsu / 0.35 x Otsu), largest components",
+  "otsu_threshold": 29.0,
+  "jaw_pixels": 30656
+ },
+ "intrinsics": {
+  "K": [
+   [
+    550.9380183601322,
+    0.0,
+    327.5369859667991
+   ],
+   [
+    0.0,
+    550.2029435554653,
+    246.3115198867393
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "dist": [
+   -0.43035746888222154,
+   0.1994768835628035,
+   0.00041985819033224487,
+   0.0033026867778315444,
+   0.016053357276247498
+  ],
+  "K_isaac_render": [
+   [
+    550.5704809577987,
+    0.0,
+    320.0
+   ],
+   [
+    0.0,
+    550.5704809577987,
+    240.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "note": "K_isaac_render = what PinholeCameraCfg.from_intrinsic_matrix(K) renders in Isaac (mean f, centred principal point); see apply_requirements 'wrist_intrinsics'"
+ },
+ "WRIST_CAM_QUAT_KSIM_COMPENSATED": [
+  -0.228204,
+  0.007371,
+  0.000967,
+  0.973585
+ ],
+ "ksim_compensated": {
+  "note": "Option (c) only: use with WRIST_CAM_POS when Isaac renders K_isaac_render (default spawn) but real frames are undistorted to K. The K -> K_sim difference (principal point shift, mean focal length) is not a rotation; this is its best rotation approximation over the whole image.",
+  "WRIST_CAM_POS": [
+   0.002572,
+   0.064975,
+   -0.011729
+  ],
+  "WRIST_CAM_QUAT": [
+   -0.228204,
+   0.007371,
+   0.000967,
+   0.973585
+  ],
+  "rotation_deg": 0.9404742438594355,
+  "residual_px_mean": 0.9599113162897661,
+  "residual_px_max": 4.198859974030252,
+  "iou_numpy_vs_real_undistorted_to_K": 0.9726986574163294,
+  "boundary_mean_px_numpy_vs_real_undistorted_to_K": 0.8504247799262398,
+  "uncompensated_iou_numpy_vs_real_undistorted_to_K": 0.824793866628092
+ },
+ "T_usd_urdf": [
+  [
+   1.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  [
+   0.0,
+   1.0,
+   0.0,
+   0.0
+  ],
+  [
+   0.0,
+   0.0,
+   1.0,
+   0.0
+  ],
+  [
+   0.0,
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "frame_check": {
+  "interpretation": {
+   "link_local_frames_identical": true,
+   "fk_rotation_axis_in_gripper_frame": [
+    7.82293086523604e-06,
+    -1.9127897699423053e-06,
+    0.9999999999675714
+   ],
+   "equivalent_wrist_roll_offset_deg": 2.789335827199947,
+   "note": "The URDF STLs placed in gripper_link / jaw link coincide with the USD visual meshes in the USD 'gripper' / jaw bodies (nearest-point p99 < 0.1 mm) and the jaw joint is identical, so a pose relative to the gripper geometry (the camera offset) needs no conversion: T_USD_URDF = identity. The kinematic (FK) difference is a pure rotation about the gripper z = wrist_roll axis, i.e. a wrist_roll zero offset: the URDF wrist_roll origin carries rpy pitch 0.0486795 rad (= Rz(-2.789 deg) on the child side) which NVIDIA's USD does not; at equal joint angles the sim gripper is rolled +2.79 deg relative to URDF FK (calib/fk.py, silhouette.py)."
+  },
+  "T_urdf_gripper_link_to_usd_gripper": {
+   "R": [
+    [
+     0.9988152122007439,
+     -0.048663866229225514,
+     -8.381523244826559e-08
+    ],
+    [
+     0.048663866229190056,
+     0.9988152122006757,
+     -3.829603111405676e-07
+    ],
+    [
+     1.0235225853591052e-07,
+     3.7842781117649804e-07,
+     0.9999999999999231
+    ]
+   ],
+   "t_m": [
+    -4.923378673984957e-08,
+    0.00019952929166180307,
+    -1.3412614712176099e-05
+   ],
+   "t_norm_mm": 0.19997959618032018,
+   "angle_deg": 2.789335827199947
+  },
+  "spread_over_configs_max_mm": 0.2906714857981005,
+  "spread_over_configs_max_deg": 0.0003914383643407973,
+  "n_configs": 10,
+  "jaw_link_vs_urdf_fk_max_mm": 1.59166212485048,
+  "jaw_link_vs_urdf_fk_max_deg": 2.7894575276993687,
+  "jaw_relative_to_gripper_urdf_vs_usd_max_mm": 3.109796565493839e-05,
+  "jaw_relative_to_gripper_urdf_vs_usd_max_deg": 3.785976740478095e-05,
+  "urdf_stl_vs_usd_visual_mesh": {
+   "sts3215_03a_v1": {
+    "urdf_to_usd_nn_mm_mean": 0.0029007999692112207,
+    "urdf_to_usd_nn_mm_p99": 0.0152587890625,
+    "urdf_to_usd_nn_mm_max": 0.018688123673200607
+   },
+   "wrist_roll_follower_so101_v1": {
+    "urdf_to_usd_nn_mm_mean": 0.0041287560015916824,
+    "urdf_to_usd_nn_mm_p99": 0.04315837100148201,
+    "urdf_to_usd_nn_mm_max": 0.04315837100148201
+   },
+   "moving_jaw_so101_v1": {
+    "urdf_to_usd_nn_mm_mean": 0.002501325448974967,
+    "urdf_to_usd_nn_mm_p99": 0.030517578125,
+    "urdf_to_usd_nn_mm_max": 0.030517578125
+   }
+  },
+  "usd_camera_prims_in_gripper_frame": {
+   "gripper/visuals/camera_mount": {
+    "type": "Xform",
+    "pos": [
+     -0.003914179183834882,
+     0.025696293891666125,
+     -0.02903578953683722
+    ],
+    "quat_xyzw": [
+     -8.197905016237786e-18,
+     0.7071067811865474,
+     0.7071067811865477,
+     -6.123231541363263e-17
+    ]
+   },
+   "gripper/visuals/camera_mount/camera_cover": {
+    "type": "Xform",
+    "pos": [
+     -0.001903780173834857,
+     0.031223901988666126,
+     -0.023599845932837205
+    ],
+    "quat_xyzw": [
+     0.5338625777178629,
+     -0.5338624942444908,
+     -0.4636745985715368,
+     -0.46366739371128274
+    ]
+   },
+   "gripper/collisions/camera_mount": {
+    "type": "Xform",
+    "pos": [
+     -0.003914179183834882,
+     0.025696293891666125,
+     -0.02903578953683722
+    ],
+    "quat_xyzw": [
+     -8.197905016237786e-18,
+     0.7071067811865474,
+     0.7071067811865477,
+     -6.123231541363263e-17
+    ]
+   },
+   "gripper/wowrobo_2MP_camera": {
+    "type": "Camera",
+    "pos": [
+     -0.001886280367287524,
+     0.05226449046420151,
+     -0.05853182757774217
+    ],
+    "quat_xyzw": [
+     -0.3007057995042727,
+     2.7729584949272245e-16,
+     -2.6994006420195053e-16,
+     0.953716950748227
+    ]
+   },
+   "gripper/wrist_cam": {
+    "type": "Camera",
+    "pos": [
+     0.0025720000267029086,
+     0.06497500091791152,
+     -0.011729000136256218
+    ],
+    "quat_xyzw": [
+     -0.2334455124469546,
+     0.0013449971763459685,
+     0.0024069948867454878,
+     0.9723659753799438
+    ]
+   },
+   "gripper/wrist_cam_nvidia": {
+    "type": "Camera",
+    "pos": [
+     -0.0018899999558925351,
+     0.052260000258684144,
+     -0.05852999910712242
+    ],
+    "quat_xyzw": [
+     -0.3006962121889814,
+     -5.704178878161213e-22,
+     -9.005812516338692e-23,
+     0.953719973564148
+    ]
+   },
+   "gripper/wrist_cam_exactK": {
+    "type": "Camera",
+    "pos": [
+     0.0025720000267029086,
+     0.06497500091791152,
+     -0.011729000136256218
+    ],
+    "quat_xyzw": [
+     -0.2334455124469546,
+     0.0013449971763459685,
+     0.0024069948867454878,
+     0.9723659753799438
+    ]
+   }
+  },
+  "note": "URDF FK in the desk frame uses calib/fk.py T_WORLD_URDF (base_link -> desk, translation only)"
+ },
+ "isaac_validation": {
+  "task": "SO101-CubeInCup-Cam-v0",
+  "arm_pose_rad": [
+   0.0,
+   -0.48,
+   -0.18,
+   1.4,
+   0.0,
+   0.2436
+  ],
+  "arm_pose_actual_rad": [
+   5.367004150130805e-12,
+   -0.47999900579452515,
+   -0.1800002157688141,
+   1.400010585784912,
+   9.898338225455827e-12,
+   0.24359942972660065
+  ],
+  "arm_pose_nvidia_best_jaw_actual_rad": [
+   1.8667513715375783e-11,
+   -0.4800003468990326,
+   -0.17999985814094543,
+   1.4000109434127808,
+   1.1832998123018079e-11,
+   0.07160025089979172
+  ],
+  "depth_max_m": 0.14,
+  "nvidia_mount": {
+   "visual_path": "gripper/visuals/camera_mount",
+   "visual_visibility_after_startup": "invisible",
+   "collider_path": "gripper/collisions/camera_mount",
+   "collision_enabled_after_startup": {
+    "gripper/collisions/camera_mount/Cube/Cube": false,
+    "gripper/collisions/camera_mount/Cylinder/Cylinder": false
+   },
+   "removal_event": {
+    "visuals_hidden": 1,
+    "colliders_disabled": 2,
+    "missing": []
+   }
+  },
+  "nvidia_mount_removed": true,
+  "evaluated": {
+   "fitted": {
+    "pos": [
+     0.002572,
+     0.064975,
+     -0.011729
+    ],
+    "quat": [
+     -0.233446,
+     0.001345,
+     0.002407,
+     0.972366
+    ],
+    "jaw_angle_rad": 0.2436,
+    "spawn": "PinholeCameraCfg.from_intrinsic_matrix(WRIST_K) (env_cfg default)"
+   },
+   "nvidia": {
+    "pos": [
+     -0.00189,
+     0.05226,
+     -0.05853
+    ],
+    "quat": [
+     -0.30071,
+     0.0,
+     0.0,
+     0.95372
+    ],
+    "jaw_angle_rad": 0.2436
+   },
+   "nvidia_at_its_best_q": {
+    "pos": [
+     -0.00189,
+     0.05226,
+     -0.05853
+    ],
+    "quat": [
+     -0.30071,
+     0.0,
+     0.0,
+     0.95372
+    ],
+    "jaw_angle_rad": 0.0716
+   },
+   "fitted_exactK": {
+    "pos": [
+     0.002572,
+     0.064975,
+     -0.011729
+    ],
+    "quat": [
+     -0.233446,
+     0.001345,
+     0.002407,
+     0.972366
+    ],
+    "jaw_angle_rad": 0.2436,
+    "K": [
+     [
+      550.9380183601322,
+      0.0,
+      327.5369859667991
+     ],
+     [
+      0.0,
+      550.2029435554653,
+      246.3115198867393
+     ],
+     [
+      0.0,
+      0.0,
+      1.0
+     ]
+    ],
+    "spawn": "spawn.distortion = OpenCvPinholeDistortionCfg(fx, fy, cx, cy, image_size=(640, 480), apply_lens_distortion=False)"
+   }
+  },
+  "summary_iou": {
+   "before_nvidia_at_fitted_jaw_vs_real_Ksim": 0.16335686631746754,
+   "before_nvidia_at_its_best_jaw_vs_real_Ksim": 0.4840419835064796,
+   "after_fitted_default_spawn_vs_real_Ksim (option a)": 0.9730287935852265,
+   "after_fitted_default_spawn_vs_real_K (pose alone, intrinsics mismatch)": 0.8149264874798989,
+   "after_fitted_exactK_spawn_vs_real_K (option b)": 0.973628420917384,
+   "exactK_spawn_renderer_uses_exact_K": true
+  },
+  "results": {
+   "fitted": {
+    "camera_prim": "wrist_cam",
+    "camera_world_vs_gripper_x_offset_err_mm": 1.329014654858569e-05,
+    "camera_world_vs_gripper_x_offset_err_deg": 5.647368348172291e-05,
+    "isaac_intrinsics": [
+     [
+      550.5704956054688,
+      0.0,
+      320.0
+     ],
+     [
+      0.0,
+      550.5704956054688,
+      240.0
+     ],
+     [
+      0.0,
+      0.0,
+      1.0
+     ]
+    ],
+    "isaac_reports_exact_K": false,
+    "jaw_angle_rad_actual": 0.24359942972660065,
+    "jaw_pixels": 32547,
+    "depth_jaw_range_m": [
+     0.06619638949632645,
+     0.11267544329166412
+    ],
+    "depth_scene_min_m": 0.23318572342395782,
+    "numpy_urdf_render_vs_isaac": {
+     "iou": 0.987151248164464,
+     "n_rendered": 32409,
+     "n_segmented": 32547,
+     "boundary_mean_px": 0.3840479483633011,
+     "boundary_median_px": 0.0,
+     "boundary_p90_px": 1.0,
+     "boundary_max_px": 1.0,
+     "render_to_seg_mean_px": 0.3837638376383764,
+     "seg_to_render_mean_px": 0.38433179723502303
+    },
+    "numpy_urdf_render_with_other_K_vs_isaac": {
+     "K": [
+      [
+       550.9380183601322,
+       0.0,
+       327.5369859667991
+      ],
+      [
+       0.0,
+       550.2029435554653,
+       246.3115198867393
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ]
+     ],
+     "iou": 0.8170864964343225,
+     "n_rendered": 30644,
+     "n_segmented": 32547,
+     "boundary_mean_px": 7.100023294528059,
+     "boundary_median_px": 8.246211251235321,
+     "boundary_p90_px": 10.0,
+     "boundary_max_px": 15.0,
+     "render_to_seg_mean_px": 7.042653814361619,
+     "seg_to_render_mean_px": 7.1553835210112515
+    },
+    "renderer_uses_reported_K": true,
+    "vs_real_undistorted_to_K": {
+     "iou": 0.8149264874798989,
+     "n_rendered": 32547,
+     "n_segmented": 30656,
+     "boundary_mean_px": 7.280714437648842,
+     "boundary_median_px": 8.06225774829855,
+     "boundary_p90_px": 10.63014581273465,
+     "boundary_max_px": 17.0,
+     "render_to_seg_mean_px": 7.361834421399747,
+     "seg_to_render_mean_px": 7.195921391049871,
+     "per_jaw_iou": {
+      "left": 0.7714025012076646,
+      "right": 0.8650033965293645
+     }
+    },
+    "vs_real_undistorted_to_Ksim": {
+     "iou": 0.9730287935852265,
+     "n_rendered": 32547,
+     "n_segmented": 32413,
+     "boundary_mean_px": 0.8759351838355628,
+     "boundary_median_px": 1.0,
+     "boundary_p90_px": 2.0,
+     "boundary_max_px": 3.1622776601683795,
+     "render_to_seg_mean_px": 0.878194826160061,
+     "seg_to_render_mean_px": 0.8736523980608135,
+     "per_jaw_iou": {
+      "left": 0.9746136865342163,
+      "right": 0.9712921705919796
+     }
+    }
+   },
+   "nvidia": {
+    "camera_prim": "wrist_cam_nvidia",
+    "camera_world_vs_gripper_x_offset_err_mm": 7.665758041021537e-06,
+    "camera_world_vs_gripper_x_offset_err_deg": 0.0015001442073589934,
+    "isaac_intrinsics": [
+     [
+      550.5704956054688,
+      0.0,
+      320.0
+     ],
+     [
+      0.0,
+      550.5704956054688,
+      240.0
+     ],
+     [
+      0.0,
+      0.0,
+      1.0
+     ]
+    ],
+    "isaac_reports_exact_K": false,
+    "jaw_angle_rad_actual": 0.24359942972660065,
+    "jaw_pixels": 18670,
+    "depth_jaw_range_m": [
+     0.04870650917291641,
+     0.06856490671634674
+    ],
+    "depth_scene_min_m": 0.20583993196487427,
+    "numpy_urdf_render_vs_isaac": {
+     "iou": 0.9850037357241969,
+     "n_rendered": 18525,
+     "n_segmented": 18670,
+     "boundary_mean_px": 0.4462279293739968,
+     "boundary_median_px": 0.0,
+     "boundary_p90_px": 1.0,
+     "boundary_max_px": 1.0,
+     "render_to_seg_mean_px": 0.4453376205787781,
+     "seg_to_render_mean_px": 0.44711538461538464
+    },
+    "numpy_urdf_render_with_other_K_vs_isaac": {
+     "K": [
+      [
+       550.9380183601322,
+       0.0,
+       327.5369859667991
+      ],
+      [
+       0.0,
+       550.2029435554653,
+       246.3115198867393
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ]
+     ],
+     "iou": 0.8057256582976118,
+     "n_rendered": 16715,
+     "n_segmented": 18670,
+     "boundary_mean_px": 7.633730236296051,
+     "boundary_median_px": 8.0,
+     "boundary_p90_px": 10.295630140987,
+     "boundary_max_px": 26.0,
+     "render_to_seg_mean_px": 7.408355283325066,
+     "seg_to_render_mean_px": 7.837795698521384
+    },
+    "renderer_uses_reported_K": true,
+    "vs_real_undistorted_to_K": {
+     "iou": 0.20994922363676502,
+     "n_rendered": 18670,
+     "n_segmented": 30656,
+     "boundary_mean_px": 38.19742320393031,
+     "boundary_median_px": 29.410882339705484,
+     "boundary_p90_px": 96.24811473112744,
+     "boundary_max_px": 117.6860229593982,
+     "render_to_seg_mean_px": 26.739555318035645,
+     "seg_to_render_mean_px": 45.08539002550861,
+     "per_jaw_iou": {
+      "left": 0.43823314811696695,
+      "right": 0.03272331154684096
+     }
+    },
+    "vs_real_undistorted_to_Ksim": {
+     "iou": 0.16335686631746754,
+     "n_rendered": 18670,
+     "n_segmented": 32413,
+     "boundary_mean_px": 44.39193800317331,
+     "boundary_median_px": 38.27531841800928,
+     "boundary_p90_px": 104.19164641610246,
+     "boundary_max_px": 127.47548783981962,
+     "render_to_seg_mean_px": 31.102800393341976,
+     "seg_to_render_mean_px": 52.11300119547754,
+     "per_jaw_iou": {
+      "left": 0.34394904458598724,
+      "right": 0.015293435013262599
+     }
+    }
+   },
+   "fitted_exactK": {
+    "camera_prim": "wrist_cam_exactK",
+    "camera_world_vs_gripper_x_offset_err_mm": 1.329014654858569e-05,
+    "camera_world_vs_gripper_x_offset_err_deg": 5.647368348172291e-05,
+    "isaac_intrinsics": [
+     [
+      550.93798828125,
+      0.0,
+      327.5369873046875
+     ],
+     [
+      0.0,
+      550.2029418945312,
+      246.3115234375
+     ],
+     [
+      0.0,
+      0.0,
+      1.0
+     ]
+    ],
+    "isaac_reports_exact_K": true,
+    "jaw_angle_rad_actual": 0.24359942972660065,
+    "jaw_pixels": 30787,
+    "depth_jaw_range_m": [
+     0.06720813363790512,
+     0.11202440410852432
+    ],
+    "depth_scene_min_m": 0.23063915967941284,
+    "numpy_urdf_render_vs_isaac": {
+     "iou": 0.9861299709020369,
+     "n_rendered": 30644,
+     "n_segmented": 30787,
+     "boundary_mean_px": 0.40210200645827293,
+     "boundary_median_px": 0.0,
+     "boundary_p90_px": 1.0,
+     "boundary_max_px": 1.4142135623730951,
+     "render_to_seg_mean_px": 0.40019102196752626,
+     "seg_to_render_mean_px": 0.40400210214850246
+    },
+    "numpy_urdf_render_with_other_K_vs_isaac": {
+     "K": [
+      [
+       550.5704809577987,
+       0.0,
+       320.0
+      ],
+      [
+       0.0,
+       550.5704809577987,
+       240.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ]
+     ],
+     "iou": 0.8382686601896562,
+     "n_rendered": 32409,
+     "n_segmented": 30787,
+     "boundary_mean_px": 6.179313318867806,
+     "boundary_median_px": 7.0710678118654755,
+     "boundary_p90_px": 8.602325267042627,
+     "boundary_max_px": 13.0,
+     "render_to_seg_mean_px": 6.213525444752069,
+     "seg_to_render_mean_px": 6.144093998394358
+    },
+    "renderer_uses_reported_K": true,
+    "renderer_uses_exact_K": true,
+    "vs_real_undistorted_to_K": {
+     "iou": 0.973628420917384,
+     "n_rendered": 30787,
+     "n_segmented": 30656,
+     "boundary_mean_px": 0.8237331884664465,
+     "boundary_median_px": 1.0,
+     "boundary_p90_px": 2.0,
+     "boundary_max_px": 3.1622776601683795,
+     "render_to_seg_mean_px": 0.8318425701244777,
+     "seg_to_render_mean_px": 0.8155066192122009,
+     "per_jaw_iou": {
+      "left": 0.9754245137388082,
+      "right": 0.9716810604539065
+     }
+    },
+    "vs_real_undistorted_to_Ksim": {
+     "iou": 0.8401514048624253,
+     "n_rendered": 30787,
+     "n_segmented": 32413,
+     "boundary_mean_px": 6.08232710563603,
+     "boundary_median_px": 7.0710678118654755,
+     "boundary_p90_px": 8.73910392422527,
+     "boundary_max_px": 12.0,
+     "render_to_seg_mean_px": 6.063760295783193,
+     "seg_to_render_mean_px": 6.100530877307386,
+     "per_jaw_iou": {
+      "left": 0.8215619599754724,
+      "right": 0.8604778739485555
+     }
+    }
+   },
+   "nvidia_at_its_best_q": {
+    "camera_prim": "wrist_cam_nvidia",
+    "camera_world_vs_gripper_x_offset_err_mm": 5.701593890287967e-06,
+    "camera_world_vs_gripper_x_offset_err_deg": 0.001503442136925126,
+    "isaac_intrinsics": [
+     [
+      550.5704956054688,
+      0.0,
+      320.0
+     ],
+     [
+      0.0,
+      550.5704956054688,
+      240.0
+     ],
+     [
+      0.0,
+      0.0,
+      1.0
+     ]
+    ],
+    "isaac_reports_exact_K": false,
+    "jaw_angle_rad_actual": 0.07160025089979172,
+    "jaw_pixels": 23013,
+    "depth_jaw_range_m": [
+     0.04869477450847626,
+     0.06857231259346008
+    ],
+    "depth_scene_min_m": 0.20584003627300262,
+    "numpy_urdf_render_vs_isaac": {
+     "iou": 0.9879998267122991,
+     "n_rendered": 22876,
+     "n_segmented": 23013,
+     "boundary_mean_px": 0.3370233702337023,
+     "boundary_median_px": 0.0,
+     "boundary_p90_px": 1.0,
+     "boundary_max_px": 1.0,
+     "render_to_seg_mean_px": 0.33620689655172414,
+     "seg_to_render_mean_px": 0.33783783783783783
+    },
+    "numpy_urdf_render_with_other_K_vs_isaac": {
+     "K": [
+      [
+       550.9380183601322,
+       0.0,
+       327.5369859667991
+      ],
+      [
+       0.0,
+       550.2029435554653,
+       246.3115198867393
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ]
+     ],
+     "iou": 0.8380873180873181,
+     "n_rendered": 21193,
+     "n_segmented": 23013,
+     "boundary_mean_px": 5.8790697460006776,
+     "boundary_median_px": 7.280109889280518,
+     "boundary_p90_px": 10.0,
+     "boundary_max_px": 26.0,
+     "render_to_seg_mean_px": 5.63770960842978,
+     "seg_to_render_mean_px": 6.103528743717101
+    },
+    "renderer_uses_reported_K": true,
+    "vs_real_undistorted_to_K": {
+     "iou": 0.5385872369703572,
+     "n_rendered": 23013,
+     "n_segmented": 30656,
+     "boundary_mean_px": 22.106596181387125,
+     "boundary_median_px": 23.021728866442675,
+     "boundary_p90_px": 38.8329756778952,
+     "boundary_max_px": 57.0,
+     "render_to_seg_mean_px": 19.383213170991997,
+     "seg_to_render_mean_px": 24.242274187612207,
+     "per_jaw_iou": {
+      "left": 0.43823314811696695,
+      "right": 0.6433636097275125
+     }
+    },
+    "vs_real_undistorted_to_Ksim": {
+     "iou": 0.4840419835064796,
+     "n_rendered": 23013,
+     "n_segmented": 32413,
+     "boundary_mean_px": 26.10657157020787,
+     "boundary_median_px": 25.62225409284199,
+     "boundary_p90_px": 47.50789408087881,
+     "boundary_max_px": 72.0,
+     "render_to_seg_mean_px": 22.438715391349817,
+     "seg_to_render_mean_px": 28.88649236126044,
+     "per_jaw_iou": {
+      "left": 0.34394904458598724,
+      "right": 0.6418080382557213
+     }
+    }
+   }
+  },
+  "images": [
+   "calib/data/wrist_mount_isaac_overlay.jpg",
+   "calib/data/wrist_mount_isaac_side_by_side.jpg"
+  ]
+ },
+ "apply_requirements": [
+  {
+   "id": "remove_nvidia_camera_mount",
+   "required": true,
+   "what": "Remove NVIDIA's camera-mount model from the robot in the env: make the visual prim <Robot>/gripper/visuals/camera_mount invisible and disable collision on every collider under <Robot>/gripper/collisions/camera_mount, with a mode='prestartup' EventTerm (de-instance the enclosing instanceable prim first). Ready-made function: remove_nvidia_mount() in scripts/check_wrist_mount.py. The collider part belongs in CubeInCupEnvCfg (all variants), the visual part at least in CubeInCupCamEnvCfg.",
+   "why": "The mount occupies y = 24..84 mm, z = -56..-18 mm of the gripper frame, directly in front of the fitted camera: with it visible the fitted camera images only the mount (all 307200 px at 2-3 cm depth, first Isaac run). The real camera sees the jaws through that space, so the real arm has nothing there and the collider is a phantom obstacle next to the jaws.",
+   "evidence": {
+    "isaac_check_with_mount_visible": "scratchpad wrist_mount/isaac_check_1.log: fitted camera 'jaw pixels 307200 (depth [0.0218, 0.0330])'",
+    "this_validation": {
+     "visual_path": "gripper/visuals/camera_mount",
+     "visual_visibility_after_startup": "invisible",
+     "collider_path": "gripper/collisions/camera_mount",
+     "collision_enabled_after_startup": {
+      "gripper/collisions/camera_mount/Cube/Cube": false,
+      "gripper/collisions/camera_mount/Cylinder/Cylinder": false
+     },
+     "removal_event": {
+      "visuals_hidden": 1,
+      "colliders_disabled": 2,
+      "missing": []
+     }
+    }
+   }
+  },
+  {
+   "id": "wrist_intrinsics",
+   "required": true,
+   "what": "Make the sim render the same pinhole the real frames are undistorted to. Pick ONE: (b) env_cfg: scene.wrist_cam.spawn.distortion = sim_utils.OpenCvPinholeDistortionCfg(fx, fy, cx, cy from WRIST_K, image_size=(640, 480), apply_lens_distortion=False) -> Isaac renders the exact K and the documented real-side cv2.undistort(img, K, DIST) stays valid; (a) keep the default spawn and undistort real frames with cv2.undistort(img, K, DIST, None, K_sim), K_sim = intrinsics.K_isaac_render, and correct the comment in so101_r2s2r/calib.py; (c) change nothing else and use WRIST_CAM_QUAT_KSIM_COMPENSATED instead of WRIST_CAM_QUAT (approximation, see ksim_compensated).",
+   "why": "PinholeCameraCfg.from_intrinsic_matrix drops the principal point and averages fx, fy (isaaclab.utils.sensors.convert_camera_intrinsics_to_usd): Isaac renders K_sim (f 550.57, c (320, 240)) while the real K has c (327.54, 246.31), a 7.5 / 6.3 px (0.78 / 0.66 deg) shift. With the pose alone, the sim jaws sit ~7 px off the K-undistorted real jaws.",
+   "evidence": {
+    "default_spawn_vs_real_undistorted_to_K": 0.815,
+    "default_spawn_vs_real_undistorted_to_K_sim_option_a": 0.973,
+    "exact_K_spawn_vs_real_undistorted_to_K_option_b": 0.974,
+    "exact_K_spawn_renderer_uses_exact_K": true,
+    "ksim_compensated_numpy_iou_vs_real_undistorted_to_K_option_c": 0.9726986574163294,
+    "ksim_compensated_residual_px": {
+     "mean": 0.9599113162897661,
+     "max": 4.198859974030252
+    }
+   }
+  },
+  {
+   "id": "scene_cam_intrinsics",
+   "required": false,
+   "what": "The overhead scene_cam is spawned the same way (from_intrinsic_matrix), so it too renders a centred principal point and mean focal length; apply the same choice once SCENE_K is calibrated.",
+   "why": "Same IsaacLab conversion; not measured here."
+  }
+ ]
+}

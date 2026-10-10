@@ -1,0 +1,11 @@
+{
+ "follower": {
+  "shoulder_pan": 14.065934065934066,
+  "shoulder_lift": -89.0989010989011,
+  "elbow_flex": -32.395604395604394,
+  "wrist_flex": 98.37362637362638,
+  "wrist_roll": -10.065934065934066,
+  "gripper": 2.1011162179908074
+ },
+ "source": "sweep sample 539 t=83.7s"
+}
