@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.so
+.venv/
+# Manim render output
+report/manim/media/
+# datasets, checkpoints and large assets live outside the repo
+*.ply
+*.usdc
+*.safetensors
+outputs/
