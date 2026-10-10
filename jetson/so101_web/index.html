@@ -1,0 +1,1096 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SO-101 Console</title>
+<!-- IBM Plex, loaded without blocking the first paint (media=print swap): the console, and its STOP, must never wait on
+     the internet. Offline the fallbacks below apply. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  /* Machine-HMI styling (ISA-101 style): grey is normal, colour only means something.
+     green = arm moving / active, slate = leader in control, amber = attention, red = alarm / stop / recording,
+     hatched + dashed = dry run (policy computes, arm holds). */
+  :root {
+    --canvas: #c8cac6; --band: #b9bbb7; --panel: #d4d5d1; --well: #e0e1dd; --tile: #cdcfcb;
+    --rule: #989a95; --edge: #5c5f5b; --ink: #1a1c1b; --dim: #444744; --idle: #545753;
+    --run: #1d5a36; --slate: #33495a; --dry: #34505f;
+    --warn: #e3a400; --warn-ink: #6a4200; --bad: #b8261c; --bad-ink: #9a1c13; --tally: #d0261b;
+    --hatch: repeating-linear-gradient(-45deg, #c6d0d5 0 4px, #e0e3e0 4px 9px);
+    --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }  /* author display rules must not un-hide */
+  html { background: var(--canvas); }
+  body { margin: 0; background: var(--canvas); color: var(--ink); font: 14px/1.4 var(--sans); }
+  b, strong { font-weight: 600; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  kbd { font: 500 11px/1.3 var(--mono); border: 1px solid var(--edge); background: var(--well); color: var(--ink);
+        padding: 0 4px; display: inline-block; min-width: 1.7em; text-align: center; }
+  .hint { font-size: 12px; color: var(--dim); }
+  .spacer { flex: 1; }
+  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  /* ---------- top bar: identity, mode, annunciators, STOP */
+  .topbar { position: sticky; top: 0; z-index: 10; display: grid; align-items: center; gap: 8px 16px;
+         grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "ident ops annun estop";
+         padding: 8px 16px; background: var(--band); border-bottom: 1px solid var(--edge); }
+  .top { display: contents; }
+  .ident { grid-area: ident; display: flex; flex-direction: column; line-height: 1.1; }
+  .ident h1 { margin: 0; font-size: 17px; font-weight: 700; }
+  .ident span { font: 11px var(--mono); color: var(--dim); margin-top: 3px; }
+  .ops { grid-area: ops; display: flex; gap: 10px; align-items: center; }
+  .seg { display: inline-flex; border: 1px solid var(--edge); background: var(--well); }
+  .seg button { background: transparent; color: var(--ink); border: 0; padding: 7px 15px; font: 500 14px var(--sans); cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--edge); }
+  .seg button:hover:not(:disabled) { background: #eaebe7; }
+  .seg button.on { background: var(--ink); color: #f2f2ef; }
+  .seg button:disabled { color: #73766f; cursor: not-allowed; }
+  .seg button.polmode, .seg button.polmode:disabled { background: var(--run); color: #fff; cursor: default; }
+  .annun { grid-area: annun; display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+  .ann { font: 500 12px/28px var(--mono); height: 30px; padding: 0 10px; min-width: 84px; text-align: center;
+         border: 1px solid #7e817c; background: var(--tile); color: var(--ink); white-space: nowrap;
+         overflow: hidden; text-overflow: ellipsis; }
+  .ann.idle { color: #6f726d; background: transparent; border-color: #a9aba6; font-weight: 400; }
+  #p-pol:not([hidden]) + .idle, #p-rec:not([hidden]) + .idle { display: none; }
+  .ann.bad, .ann.fault-on, .ann.rec-on { background: var(--bad); border-color: #6d140e; color: #fff; font-weight: 600; }
+  .ann.warn, .ann.lbl-on, .ann.m-limp { background: var(--warn); border-color: #7a5600; color: #1a1300; font-weight: 600; }
+  .ann.pol-on, .ann.m-policy { background: var(--run); border-color: #0e3820; color: #fff; font-weight: 600; }
+  .ann.take-on, .ann.m-teleop { background: var(--slate); border-color: #1b2a35; color: #fff; font-weight: 600; }
+  .ann.dry-on { background: var(--hatch); border: 1px dashed var(--dry); color: #142630; font-weight: 600; }
+  .estop { grid-area: estop; padding: 5px; background: repeating-linear-gradient(-45deg, #1b1b19 0 7px, #e6b509 7px 14px); }
+  .estop .plate { background: #e6b509; padding: 4px; }
+  button.act.stop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+                min-width: 188px; padding: 5px 18px 6px; background: #c4271c; color: #fff; border: 1px solid #5a0d08;
+                font: 700 22px/1 var(--sans); cursor: pointer; }
+  button.act.stop:hover { background: #d22c20; }
+  button.act.stop:active { background: #a11e15; }
+  button.stop .s2 { font: 500 11.5px/1.2 var(--sans); }
+  button.stop kbd { background: #f4e9e7; border-color: #5a0d08; color: #3a0905; font-size: 10.5px; margin-left: 2px; }
+  #stop:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+  /* ---------- buttons, inputs */
+  button.act { border: 1px solid var(--edge); background: var(--well); color: var(--ink); padding: 7px 13px;
+               font: 500 14px var(--sans); cursor: pointer; border-radius: 0; }
+  button.act:hover:not(:disabled) { background: #ecede9; }
+  button.act:active:not(:disabled) { background: #c6c8c4; }
+  button.act:disabled { color: #6f726c; background: transparent; border-color: #a2a49f; cursor: not-allowed; }
+  button.limp { border: 2px solid var(--warn); padding: 6px 12px; }
+  button.limp:disabled { border-color: #a2a49f; }
+  input, select { font: 14px var(--sans); color: var(--ink); background: var(--well); border: 1px solid var(--edge);
+                  border-radius: 0; padding: 7px 9px; min-width: 0; }
+  input[type=number] { font-family: var(--mono); }
+  input:disabled, select:disabled { color: #6a6d67; background: #d3d4d0; border-color: #a2a49f; }
+  input[type=checkbox] { accent-color: var(--ink); width: 17px; height: 17px; margin: 0; }
+  input::placeholder { color: #6b6e69; }
+  input:invalid:not(:placeholder-shown) { border-color: var(--bad); }
+
+  /* ---------- layout */
+  main { padding: 12px 16px 28px; display: grid; gap: 14px; }
+  .ctl { display: grid; gap: 14px; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
+  .panel { background: var(--panel); border: 1px solid var(--rule); min-width: 0; }
+  .sh { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: 9px 12px 8px;
+        border-bottom: 1px solid var(--rule); font-size: 15px; font-weight: 700; }
+  .sh .sr { margin-left: auto; font-size: 12px; font-weight: 400; color: var(--dim); }
+  .body { padding: 12px; }
+  /* the two panels that own hotkeys carry their group colour: policy = green, recording = red (as the annunciators) */
+  .pol { --grp: var(--run); } .rec { --grp: var(--tally); }
+  .pol > .sh, .rec > .sh { box-shadow: inset 4px 0 0 var(--grp); padding-left: 14px; }
+
+  /* ---------- cameras: multiviewer wall */
+  .mv { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; background: #0a0a0a; border: 1px solid #000;
+        max-width: calc((100vh - 150px) * 8 / 3 + 9px); margin: 0 auto; width: 100%; }
+  .cam { position: relative; background: #000; min-width: 0; }
+  .view { position: relative; aspect-ratio: 4 / 3; background: #000; cursor: zoom-in; }
+  .view img { width: 100%; height: 100%; object-fit: contain; display: block; color: #8d8f8b; font: 12px var(--mono); }
+  .view .over { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; text-align: center;
+                padding: 24px; color: #b9bbb6; background: #0b0b0b; font: 13px/1.5 var(--mono); }
+  .view.off .over { display: flex; }
+  .cam.big { grid-column: 1 / -1; }
+  .cam.big .view { aspect-ratio: auto; height: min(calc(100vh - 150px), 75vw); cursor: zoom-out; }
+  .osd { position: absolute; z-index: 2; font: 500 12px/1 var(--mono); color: #f1f1ee; background: rgba(0, 0, 0, .66);
+         padding: 4px 7px; pointer-events: none; white-space: nowrap; }
+  .osd.tl { top: 8px; left: 8px; }
+  .osd.tr { top: 8px; right: 8px; max-width: calc(100% - 180px); overflow: hidden; text-overflow: ellipsis; }
+  .osd.tr:empty { display: none; }
+  .view.off ~ .osd.tr { background: var(--bad); }
+  .view .tag { position: absolute; z-index: 2; left: 8px; bottom: 8px; display: none; font: 600 12px/1 var(--mono); color: #fff;
+               background: var(--run); border: 1px solid #fff; padding: 4px 7px; }
+  .view.pview .tag { display: block; }
+  .pvt { position: absolute; z-index: 3; right: 8px; bottom: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;
+         font: 500 12px/1 var(--mono); color: #f1f1ee; background: rgba(0, 0, 0, .66); padding: 5px 8px; pointer-events: auto; }
+  .pvt input { accent-color: #f1f1ee; width: 14px; height: 14px; }
+  .pvt:focus-within { outline: 2px solid #fff; outline-offset: 1px; }
+  /* recording: red tally border + red source label */
+  body.tally .cam:not(.aux) .view { outline: 4px solid var(--tally); outline-offset: -4px; }
+  body.tally .cam:not(.aux) .osd.tl { background: var(--tally); }
+  /* depth: a small secondary tile on its own row; collapses to a one-line strip without a signal */
+  .cam.aux { grid-column: 1 / -1; display: flex; align-items: flex-start; }
+  .cam.aux .view { width: min(240px, 34%); flex: none; }
+  .cam.aux .osd.tr { left: calc(min(240px, 34%) + 10px); right: auto; max-width: calc(100% - min(240px, 34%) - 20px); }
+  .cam.aux.big .view { width: 100%; }
+  .cam.aux.big .osd.tr { left: auto; right: 8px; }
+  .cam.aux .view.off { width: 100%; aspect-ratio: auto; height: 32px; cursor: default; pointer-events: none; }
+  .cam.aux .view.off .over { display: block; padding: 0 116px 0 126px; font-size: 12px; line-height: 32px; text-align: left;
+                             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cam.aux .view.off ~ .osd.tl { top: 7px; }
+  .cam.aux .view.off ~ .osd.tr { top: 7px; left: auto; right: 8px; }
+
+  /* ---------- hotkey legends: one per panel, no key shared between them (Esc = STOP is global, on the STOP button) */
+  .keys { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; padding: 6px 12px 6px 14px;
+          border-bottom: 1px solid var(--rule); background: #cbccc8; font-size: 12px; color: var(--dim);
+          box-shadow: inset 4px 0 0 var(--grp); }
+  .keys .kt { display: inline-flex; align-items: center; gap: 6px; font: 600 11px/1 var(--mono); letter-spacing: .05em;
+              text-transform: uppercase; color: var(--ink); }
+  .keys kbd { border-bottom: 2px solid var(--grp); }
+  .keys .k { white-space: nowrap; } .keys .k.off { opacity: .4; }
+  .keys .ctx { color: var(--warn-ink); font-weight: 600; }
+
+  /* ---------- policy */
+  .pol label { display: grid; gap: 3px; font-size: 12px; color: var(--dim); }
+  .pol label.chk { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; white-space: nowrap; color: var(--ink); font-size: 14px; }
+  .pol select, .pol input:not([type=checkbox]) { width: 100%; }
+  .pol .chk.dryl input { accent-color: var(--dry); }
+  .ptop { display: flex; flex-wrap: wrap; gap: 6px; align-items: end; }
+  .ptop label { flex: 1 1 320px; min-width: 0; }
+  .ptop select { font-family: var(--mono); font-size: 13px; height: 36px; }
+  .ptop button { height: 36px; }
+  .pdesc { margin-top: 8px; font-size: 12px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 3px 12px; align-items: center; }
+  .badge { font: 500 11px/1.3 var(--mono); padding: 1px 6px; border: 1px solid var(--rule); color: var(--dim); white-space: nowrap; }
+  .badge.und { color: var(--dry); border-color: var(--dry); border-style: dashed; }
+  .badge.bad { color: var(--bad-ink); border-color: var(--bad-ink); white-space: normal; }
+  .badge.ok { color: var(--run); border-color: var(--run); }
+  .pnotes { flex-basis: 100%; color: var(--ink); }
+  .pstat { margin-top: 12px; padding: 9px 12px 10px; background: var(--well); border: 1px solid var(--edge); border-left: 6px solid var(--edge);
+           display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+  .pstat .ph { font: 600 13px/1 var(--mono); padding: 6px 9px; border: 1px solid var(--edge); background: var(--tile); }
+  .pstat .who { font-weight: 600; }
+  .pstat .nums { font: 12.5px var(--mono); color: var(--dim); display: flex; flex-wrap: wrap; gap: 2px 14px; }
+  .pstat .nums b { color: var(--ink); }
+  .pstat .nums .w { color: var(--bad-ink); font-weight: 600; }
+  .pstat .pmsg { flex-basis: 100%; font-size: 13px; color: var(--dim); }
+  .bar { flex-basis: 100%; height: 8px; background: var(--canvas); border: 1px solid var(--edge); }
+  .bar i { display: block; height: 100%; background: var(--ink); width: 0; }
+  .pstat .bar i { transition: width .1s linear; }
+  .pstat.loading .ph { animation: blink 1.2s infinite; }
+  .pstat.ready { border-left-color: var(--run); } .pstat.ready .ph { color: var(--run); border-color: var(--run); background: var(--well); }
+  .pstat.homing, .pstat.running { border-left-color: var(--run); }
+  .pstat.homing .ph, .pstat.running .ph { background: var(--run); border-color: var(--run); color: #fff; }
+  .pstat.running .bar i, .pstat.homing .bar i { background: var(--run); }
+  .pstat.running.dry { border: 1px dashed var(--dry); border-left: 6px dashed var(--dry); }
+  .pstat.running.dry .ph { background: var(--hatch); border: 1px dashed var(--dry); color: #142630; }
+  .pstat.running.dry .bar i { background: var(--dry); }
+  .pstat.intervention { border-left-color: var(--slate); }
+  .pstat.intervention .ph { background: var(--slate); border-color: var(--slate); color: #fff; }
+  .pstat.intervention .bar i { background: var(--slate); }
+  .pstat.pending { border-left-color: var(--warn); }
+  .pstat.pending .ph { background: var(--warn); border-color: #7a5600; color: #1a1300; }
+  .pstat.pending .bar i { background: #7a5600; }
+  .pstat.error { border-left-color: var(--bad); }
+  .pstat.error .ph { background: var(--bad); border-color: #6d140e; color: #fff; }
+  @keyframes blink { 50% { opacity: .4; } }
+  @media (prefers-reduced-motion: reduce) { .pstat.loading .ph { animation: none; } }
+  .pfault { margin-top: 8px; padding: 9px 12px; background: var(--bad); color: #fff; border: 1px solid #6d140e; font-weight: 500; }
+  .pfault b { font: 700 13px var(--mono); margin-right: 10px; padding: 1px 6px; background: #fff; color: var(--bad-ink); }
+  .pout { margin-top: 8px; padding: 8px 10px; background: var(--well); border: 1px solid var(--edge); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .pout.pending { background: var(--warn); border-color: #7a5600; }
+  .pout .q { font-weight: 700; margin-right: 6px; }
+  .pout input { flex: 1 1 200px; width: auto !important; }
+  .pout.pending button.act:not(:hover) { background: #f3e3b3; }
+  .pout.pending input { background: #f3e3b3; }
+  #pdisc { color: var(--bad-ink); border-color: var(--bad-ink); }
+  .psettings { margin-top: 12px; display: grid; gap: 10px 12px; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: end; }
+  .psettings .task { grid-column: span 2; }
+  .more { grid-column: 1 / -1; }
+  .more summary { cursor: pointer; font-size: 12px; color: var(--dim); width: max-content; }
+  .more summary:hover { color: var(--ink); }
+  .more .mg { margin-top: 8px; display: grid; gap: 10px 12px; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: end; }
+  .pbtns { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button.big { padding: 11px 20px; font-size: 15px; font-weight: 600; min-width: 190px; }
+  button.go:not(:disabled) { background: var(--run); border-color: #0e3820; color: #fff; }
+  button.go:hover:not(:disabled) { background: #236a41; }
+  button.go.dry:not(:disabled) { background: var(--ink); border-color: #000; color: #f2f2ef; }
+  button.go.dry:hover:not(:disabled) { background: #333634; }
+  button.halt:not(:disabled) { background: var(--bad); border-color: #6d140e; color: #fff; }
+  button.halt:hover:not(:disabled) { background: #c72c21; }
+  .pol button kbd, .rec button kbd { margin-left: 8px; }
+  button.big kbd, button.go kbd { background: transparent; color: inherit; border-color: currentColor; }
+  .pnote { margin-top: 10px; font-size: 12px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 3px 16px; }
+  .pnote .why { color: var(--warn-ink); font-weight: 500; }
+  .pflash { font-size: 13px; font-weight: 600; } .pflash.bad { color: var(--bad-ink); } .pflash.ok { color: var(--run); }
+
+  /* ---------- joints: bar gauges. needle + grey fill = actual (fill from 0), dark tabs above/below = target (manual
+     handle / leader / follower when limp), hollow green box = live policy target, dashed box = dry-run policy target */
+  .jrows { padding: 2px 12px 8px; }
+  .row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 162px; gap: 4px 12px; align-items: center; padding: 7px 0;
+         border-top: 1px solid var(--rule); }
+  .row:first-child { border-top: 0; }
+  .name { font-weight: 600; font-size: 13.5px; }
+  .vals { font: 12px/1.45 var(--mono); color: var(--dim); text-align: right; white-space: nowrap; }
+  .vals b { color: var(--ink); }
+  .vals b.a { font-size: 14px; }
+  .vals .l, .vals .pt { display: block; }
+  .vals .pt { color: var(--dry); }
+  .vals .pt b { color: var(--dry); }
+  .vals .pl b { color: var(--run); }
+  .sl { position: relative; height: 34px; }
+  .trk { position: absolute; left: 8px; right: 8px; top: 10px; height: 14px; background: var(--well); border: 1px solid var(--edge); }
+  .trk .fill { position: absolute; top: 0; bottom: 0; left: calc(var(--f0) * 100%); right: calc((1 - var(--f1)) * 100%); background: #a3a6a1; }
+  .trk .zero { position: absolute; top: -4px; bottom: -4px; width: 1px; left: calc(var(--z) * 100%); background: var(--edge); }
+  .trk .ndl { position: absolute; top: -5px; bottom: -5px; width: 3px; margin-left: -1px; left: calc(var(--a) * 100%); background: var(--ink); }
+  .sl input[type=range] { position: absolute; inset: 0; width: 100%; height: 34px; margin: 0; padding: 0; background: transparent;
+                          border: 0; -webkit-appearance: none; appearance: none; cursor: pointer; }
+  .sl input[type=range]:disabled { cursor: default; background: transparent; }
+  .sl input[type=range]::-webkit-slider-runnable-track { height: 34px; background: transparent; border: 0; }
+  .sl input[type=range]::-moz-range-track { height: 34px; background: transparent; border: 0; }
+  .sl input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 34px; margin-top: 0;
+      border: 0; border-radius: 0; background: linear-gradient(var(--tm) 0 9px, transparent 9px 25px, var(--tm) 25px); }
+  .sl input[type=range]::-moz-range-thumb { box-sizing: border-box; width: 16px; height: 34px; border: 0; border-radius: 0;
+      background: linear-gradient(var(--tm) 0 9px, transparent 9px 25px, var(--tm) 25px); }
+  .sl { --tm: var(--ink); }
+  .sl input[type=range]:disabled { --tm: #555853; }
+  .sl input[type=range]:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .row.polt input[type=range]::-webkit-slider-thumb { background: transparent; border: 3px solid var(--run); height: 30px; margin-top: 2px; }
+  .row.polt input[type=range]::-moz-range-thumb { background: transparent; border: 3px solid var(--run); height: 30px; }
+  .row.polt input[type=range] { --tm: var(--run); }
+  .ghost { position: absolute; top: 3px; bottom: 3px; width: 14px; margin-left: -7px; border: 2px dashed var(--dry);
+           pointer-events: none; display: none; }
+
+  /* ---------- record */
+  .side { display: grid; gap: 14px; min-width: 0; }
+  .rec form { display: grid; gap: 10px 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; }
+  .rec form .task { grid-column: span 2; }
+  .rec form button { justify-self: start; }
+  .rec label { display: grid; gap: 3px; font-size: 12px; color: var(--dim); }
+  .rec label.chk { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; white-space: nowrap; color: var(--ink); font-size: 14px; }
+  .rec label.chk input { width: 17px; }
+  .rec form button { height: 36px; white-space: nowrap; }
+  .recpol { margin-top: 8px; color: var(--warn-ink); font-weight: 500; }
+  .banner { margin-top: 12px; padding: 9px 12px 10px; background: var(--well); border: 1px solid var(--edge); border-left: 6px solid var(--edge);
+            display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+  .banner .ph { font: 600 13px/1 var(--mono); padding: 6px 9px; border: 1px solid var(--edge); background: var(--tile); }
+  #recinfo { font: 12.5px var(--mono); }
+  .banner.recording { border-left-color: var(--tally); } .banner.recording .ph { background: var(--tally); border-color: #6d140e; color: #fff; }
+  .banner.recording .bar i { background: var(--tally); }
+  .banner.resetting { border-left-color: var(--warn); } .banner.resetting .ph { background: var(--warn); border-color: #7a5600; color: #1a1300; }
+  .banner.resetting .bar i { background: #7a5600; }
+  .banner.ready { border-left-color: var(--run); } .banner.ready .ph { color: var(--run); border-color: var(--run); background: var(--well); }
+  .banner.error { border-left-color: var(--bad); } .banner.error .ph { background: var(--bad); border-color: #6d140e; color: #fff; }
+  .recbtns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* ---------- responsive */
+  @media (min-width: 1800px) { main { padding-left: 20px; padding-right: 20px; } }
+  @media (max-width: 1360px) {
+    .topbar { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "ident ops estop" "annun annun estop"; }
+    .annun { justify-content: flex-start; }
+    .ops { justify-self: start; }
+  }
+  @media (max-width: 1100px) {
+    .ctl { grid-template-columns: minmax(0, 1fr); }
+    .rec form { grid-template-columns: 1.2fr 2.6fr .7fr .7fr auto .7fr auto; } .rec form .task { grid-column: auto; }
+  }
+  @media (max-width: 760px) {
+    .psettings, .more .mg { grid-template-columns: 1fr 1fr; }
+    .psettings .task, .psettings .rds { grid-column: 1 / -1; }
+    .rec form { grid-template-columns: repeat(3, minmax(0, 1fr)); } .rec form .task { grid-column: 1 / -1; }
+  }
+  @media (max-width: 640px) {
+    body { font-size: 14px; }
+    /* only the annunciators + STOP stay pinned on a phone; the mode switch scrolls away */
+    .topbar { display: contents; }
+    .top { display: grid; position: sticky; top: 0; z-index: 10; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "annun estop";
+           gap: 8px; align-items: stretch; padding: 6px 12px; background: var(--band); border-bottom: 1px solid var(--edge); }
+    .ident { display: none; }
+    .annun { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; align-content: center; }
+    .ann { min-width: 0; height: 22px; font-size: 11px; line-height: 20px; padding: 0 5px; }
+    .estop { padding: 4px; } .estop .plate { padding: 3px; height: 100%; }
+    button.act.stop { min-width: 112px; height: 100%; padding: 4px 10px; font-size: 20px; }
+    button.stop .s2 { font-size: 10.5px; }
+    .ops { padding: 8px 12px; background: var(--band); border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+    .seg button { padding: 7px 12px; }
+    main { padding: 10px 12px 24px; gap: 12px; }
+    .wall { margin: 0 -12px; }
+    .mv { grid-template-columns: 1fr; border-left: 0; border-right: 0; }
+    .cam.aux .view { width: 46%; }
+    .cam.aux .osd.tr { left: calc(46% + 10px); max-width: calc(54% - 20px); }
+    .cam.big .view { height: 75vw; }
+    .keys { display: none; }
+    .row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "n v" "g g"; padding: 8px 0 4px; }
+    .row .name { grid-area: n; } .row .vals { grid-area: v; } .row .sl { grid-area: g; }
+    .vals .l, .vals .pt { display: inline; margin-left: 8px; }
+    .vals { white-space: normal; }
+    button.big { flex: 1 1 100%; }
+    .ptop button { flex: 1 1 auto; }
+    .rec form { grid-template-columns: 1fr 1fr; } .rec form .task, .rec form label:first-child { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="top">
+    <div class="ident"><h1>SO-101 Console</h1><span>Jetson · follower arm</span></div>
+    <div class="annun" role="status" aria-label="Status">
+      <span class="ann" id="p-link" title="Link to the console backend">LINK …</span>
+      <span class="ann" id="p-hz" title="Control loop rate">CTRL – Hz</span>
+      <span class="ann" id="a-mode" title="Arm mode">MODE –</span>
+      <span class="ann" id="p-pol" hidden></span><span class="ann idle" title="No policy episode">POLICY</span>
+      <span class="ann rec-on" id="p-rec" hidden>REC</span><span class="ann idle" id="a-rec" title="Not recording">REC</span>
+      <span class="ann idle" id="a-fault" title="No fault">FAULT</span>
+    </div>
+    <div class="estop"><div class="plate">
+      <button class="act stop" id="stop" title="Hold the arm where it is (torque stays on). Key: Esc"><span>STOP</span><span class="s2">hold pose <kbd>Esc</kbd></span></button>
+    </div></div>
+  </div>
+  <nav class="ops" aria-label="Arm mode">
+    <div class="seg" id="modes">
+      <button data-mode="teleop">Teleop</button>
+      <button data-mode="manual">Manual</button>
+      <button data-mode="policy" class="polmode" disabled hidden title="A policy is driving the arm. STOP or the Policy panel ends it.">Policy</button>
+    </div>
+    <button class="act limp" id="limp" title="Turn off motor torque. The arm will go limp and can fall.">Release torque</button>
+  </nav>
+</div>
+
+<main>
+  <section class="wall" aria-label="Cameras">
+    <div class="mv">
+      <section class="card cam" id="c-wrist">
+        <div class="view" id="v-wrist"><img alt="wrist camera"><span class="tag">POLICY VIEW</span><div class="over"></div></div>
+        <span class="osd tl">CAM 1 · WRIST</span><span class="osd tr" id="s-wrist"></span>
+        <label class="pvt" hidden title="Show the frames as the loaded policy sees them (undistorted if its sidecar says so)"><input type="checkbox" data-cam="wrist">policy view</label>
+      </section>
+      <section class="card cam" id="c-scene">
+        <div class="view" id="v-scene"><img alt="scene camera"><span class="tag">POLICY VIEW</span><div class="over"></div></div>
+        <span class="osd tl">CAM 2 · SCENE</span><span class="osd tr" id="s-scene"></span>
+        <label class="pvt" hidden title="Show the frames as the loaded policy sees them (undistorted if its sidecar says so)"><input type="checkbox" data-cam="scene">policy view</label>
+      </section>
+      <section class="card cam aux" id="c-depth">
+        <div class="view" id="v-depth"><img alt="depth"><div class="over"></div></div>
+        <span class="osd tl">CAM 3 · DEPTH</span><span class="osd tr" id="s-depth"></span>
+      </section>
+    </div>
+  </section>
+
+  <div class="ctl">
+  <section class="panel pol" id="polcard">
+    <h2 class="sh">Policy</h2>
+    <div class="hint keys" id="pkeys">
+      <span class="kt">Policy keys</span>
+      <span class="k" data-k="p"><kbd>P</kbd> <span id="pk-p">start / stop</span></span>
+      <span class="k" data-k="1"><kbd>1</kbd> success</span>
+      <span class="k" data-k="2"><kbd>2</kbd> fail</span>
+      <span class="k" data-k="0"><kbd>0</kbd> no label</span>
+      <span class="k" data-k="bs"><kbd>⌫</kbd> discard</span>
+      <span class="k" data-k="t"><kbd>T</kbd> take over</span>
+      <span class="k" data-k="r"><kbd>R</kbd> resume</span>
+      <span class="k" data-k="h"><kbd>H</kbd> start pose</span>
+      <span class="ctx" id="pkctx"></span>
+    </div>
+    <div class="body">
+    <div class="ptop">
+      <label><span class="vh">Policy</span><select id="psel"><option value="">loading policy list…</option></select></label>
+      <button class="act" id="prefresh" type="button" title="Rescan the policy folder and remote servers">Refresh</button>
+      <button class="act" id="pload" type="button">Load</button>
+      <button class="act" id="punload" type="button">Unload</button>
+    </div>
+    <div class="pdesc" id="pdesc"></div>
+
+    <div class="pstat none" id="pstat" aria-live="polite">
+      <span class="ph" id="pph">NO POLICY</span>
+      <span class="who" id="pwho"></span>
+      <span class="hint" id="pinfo"></span>
+      <span class="spacer"></span>
+      <span class="nums" id="pnums"></span>
+      <div class="bar"><i id="pbar"></i></div>
+      <span class="pmsg" id="pmsg"></span>
+    </div>
+    <div class="pfault" id="pfault" hidden><b>FAULT</b><span id="pfaultmsg"></span></div>
+    <div class="pout" id="pout" hidden>
+      <span class="q" id="pq"></span>
+      <button class="act okb" id="psucc" type="button">✓ Success<kbd>1</kbd></button>
+      <button class="act failb" id="pfail" type="button">✗ Fail<kbd>2</kbd></button>
+      <button class="act" id="pskip" type="button" title="Keep the episode without a success/fail label">Skip label<kbd>0</kbd></button>
+      <button class="act" id="pdisc" type="button" title="Drop this episode (the unsaved rollout is not written)">Discard<kbd>⌫</kbd></button>
+      <input id="pnotein" placeholder="note (optional)" maxlength="200" autocomplete="off">
+    </div>
+
+    <div class="psettings" id="psettings">
+      <label class="chk dryl" title="The policy runs on live observations but the arm holds still; its targets are shown as ghosts on the joint gauges"><input type="checkbox" id="pdry" checked>Dry run (arm holds)</label>
+      <label>Max speed °/s<input id="pspeed" type="number" min="5" max="300" step="5" value="90"></label>
+      <label>Time limit s<input id="plimit" type="number" min="1" max="600" step="1" value="40"></label>
+      <label title="Chunks: run each predicted chunk (Chunk steps actions), then switch to the next. Ensemble (ACT temporal ensembling): a fresh chunk every 2 control ticks, each moment the average of every prediction made for it: smoother, slightly slower to change its mind">Smoothing<select id="psmooth"><option value="chunks">Chunks</option><option value="ensemble">Ensemble (smoother)</option></select></label>
+      <label class="chk" title="Slow move (30°/s) to the policy's start pose before the episode"><input type="checkbox" id="phome" checked>Go to start pose first</label>
+      <details class="more"><summary>More settings: task, chunk steps, record rollouts</summary><div class="mg">
+        <label class="task">Task (language prompt)<input id="ptask" value="Put the cube in the cup" autocomplete="off"></label>
+        <label>Chunk steps<input id="pnexec" type="number" min="1" max="1000" step="1" placeholder="as trained"></label>
+        <label class="rds">Record rollouts to<input id="precds" list="dslist" placeholder="optional" pattern="[A-Za-z0-9][A-Za-z0-9_\-]{0,63}" autocomplete="off"></label>
+      </div></details>
+    </div>
+
+    <div class="pbtns">
+      <button class="act big go dry" id="pstart" type="button"><span>&#x25B6;&#xFE0E; Start dry run</span><kbd>P</kbd></button>
+      <button class="act big halt" id="pstop" type="button" disabled><span>■ Stop episode</span><kbd>P</kbd></button>
+      <button class="act" id="ptake" type="button" hidden>Take over (leader)<kbd>T</kbd></button>
+      <button class="act" id="presume" type="button" hidden>Resume policy<kbd>R</kbd></button>
+      <button class="act" id="phomeb" type="button">Go to start pose<kbd>H</kbd></button>
+      <span class="pflash" id="pflash" aria-live="assertive"></span>
+    </div>
+    <div class="pnote" id="pnote"></div>
+    </div>
+  </section>
+
+  <div class="side">
+  <section class="panel joints">
+    <h2 class="sh">Joints <span class="sr" id="msg"></span></h2>
+    <div class="jrows" id="rows"></div>
+  </section>
+
+  <section class="panel rec">
+    <h2 class="sh">Record episodes <span class="sr">teleop demos with the leader arm</span></h2>
+    <div class="hint keys" id="rkeys">
+      <span class="kt">Recording keys</span>
+      <span class="k" data-k="space"><kbd>Space</kbd> <span id="rk-space">start session</span></span>
+      <span class="k" data-k="left"><kbd>←</kbd> discard &amp; redo</span>
+      <span class="k" data-k="esc"><kbd>Esc</kbd> STOP + end session</span>
+    </div>
+    <div class="body">
+    <form id="recform" autocomplete="off">
+      <label>Dataset<input name="dataset" list="dslist" required pattern="[A-Za-z0-9][A-Za-z0-9_\-]{0,63}" placeholder="pick_cube"></label>
+      <label class="task">Task (one sentence; pi0.5's prompt)<input name="task" required minlength="3" placeholder="Pick up the red cube and put it in the bowl."></label>
+      <label>Episode s<input name="episode_s" type="number" min="1" max="600" value="30"></label>
+      <label>Reset s<input name="reset_s" type="number" min="0" max="300" value="10"></label>
+      <label class="chk" title="Each episode starts when you press Space; the reset waits for you (Reset s is ignored, Episode s is the maximum)"><input name="manual_start" type="checkbox" checked>Start on Space</label>
+      <label>Episodes<input name="num_episodes" type="number" min="1" max="1000" value="10"></label>
+      <button class="act" id="recstart" type="submit">Start recording<kbd>Space</kbd></button>
+    </form>
+    <datalist id="dslist"></datalist>
+    <div class="hint recpol" id="recpol" hidden></div>
+    <div class="hint recpol" id="recnote" hidden></div>
+    <div class="banner" id="recbanner" hidden aria-live="polite">
+      <span class="ph" id="recph"></span><span id="recinfo"></span>
+      <span class="spacer"></span>
+      <span class="recbtns">
+        <button class="act" data-rc="next" id="recnext"><span>Save &amp; next</span><kbd>Space</kbd></button>
+        <button class="act" data-rc="rerecord">Discard &amp; redo<kbd>←</kbd></button>
+        <button class="act" data-rc="stop">End session<kbd>Esc</kbd></button>
+      </span>
+      <div class="bar"><i id="recbar"></i></div>
+      <span class="hint" id="recmsg"></span>
+    </div>
+    </div>
+  </section>
+  </div>
+  </div>
+</main>
+
+<script>
+const JOINTS = ["shoulder_pan","shoulder_lift","elbow_flex","wrist_flex","wrist_roll","gripper"];
+const $ = (s) => document.querySelector(s);
+let state = null, dragging = null, lastSend = 0, pending = null;
+
+// ---- build joint rows
+const rows = $("#rows");
+for (const j of JOINTS) {
+  const unit = j === "gripper" ? "%" : "°";
+  const el = document.createElement("div");
+  el.className = "row"; el.id = "row-" + j;
+  el.innerHTML = `<div class="name">${j.replace("_"," ")}</div>
+    <div class="sl"><span class="trk"><i class="fill"></i><i class="zero"></i><i class="ndl"></i></span><input type="range" step="0.5" disabled aria-label="${j.replace("_"," ")} target"><i class="ghost"></i></div>
+    <div class="vals">actual <b class="a">–</b>${unit}<span class="l"></span><span class="pt"></span></div>`;
+  rows.appendChild(el);
+  const slider = el.querySelector("input");
+  slider.addEventListener("input", () => {
+    dragging = j; pending = pending || {}; pending[j] = parseFloat(slider.value);
+  });
+  slider.addEventListener("change", () => { flush(); dragging = null; });
+}
+
+function flush() {
+  if (!pending) return;
+  const body = JSON.stringify({ targets: pending }); pending = null;
+  fetch("/api/target", { method: "POST", body, keepalive: true }).catch(() => {});
+}
+setInterval(flush, 20);
+
+const post = (path, body) => fetch(path, { method: "POST", body: JSON.stringify(body || {}) }).then(r => r.json());
+
+// errors go to the Policy card's flash line, never alert(): a modal would swallow Esc (STOP)
+document.querySelectorAll("#modes button:not(.polmode)").forEach(b => b.onclick = async () => {
+  try {
+    const r = await post("/api/mode", { mode: b.dataset.mode });
+    if (!r.ok) flash(`${b.dataset.mode}: ${r.message}`, true);
+  } catch (e) { flash("request failed: " + e.message, true); }
+});
+// STOP wins over everything: hold the pose (the policy runner watches STOP too; /api/policy/stop is belt and braces).
+function stopAll(endRecSession) {
+  post("/api/stop").catch(() => {});
+  const p = polState();
+  if (EPISODE.includes(p.phase)) post("/api/policy/stop").catch(() => {});
+  if (endRecSession && recActive(state && state.recording)) recCmd("stop");
+}
+$("#stop").onclick = () => stopAll(false);
+$("#limp").onclick = () => {
+  if (EPISODE.includes(polState().phase)) return flash("Release torque is disabled while a policy episode runs: STOP first", true);
+  if (confirm("Release motor torque? The arm will go limp and may fall.")) post("/api/mode", { mode: "limp" });
+};
+
+// ---- video: attach streams, retry when they drop; `policy view` switches to ?view=policy
+const feedState = {};  // name -> "raw" | "policy" | false (attached view)
+const polView = { wrist: false, scene: false };
+function setFeed(name, status, policyView) {
+  const box = $("#v-" + name), img = box.querySelector("img"), over = box.querySelector(".over");
+  const ok = status === "ok", want = ok ? (policyView ? "policy" : "raw") : false;
+  $("#s-" + name).textContent = ok ? "LIVE" : "NO SIGNAL";
+  box.classList.toggle("off", !ok);
+  box.classList.toggle("pview", want === "policy");
+  over.textContent = ok ? "" : (name === "depth" ? "Depth unavailable: " : "") + status;
+  if (want && feedState[name] !== want) {
+    img.src = `/stream/${name}.mjpg?${want === "policy" ? "view=policy&" : ""}t=${Date.now()}`;
+    feedState[name] = want;
+  }
+  if (!ok && feedState[name]) { img.removeAttribute("src"); feedState[name] = false; }
+}
+for (const n of ["wrist","scene","depth"]) {
+  $("#v-" + n + " img").addEventListener("error", () => { feedState[n] = false; });
+}
+document.querySelectorAll(".pvt input").forEach(cb => cb.addEventListener("change", () => { polView[cb.dataset.cam] = cb.checked; }));
+
+// ---- state polling
+async function poll() {
+  try {
+    const r = await fetch("/api/state"); if (!r.ok) throw 0;
+    state = await r.json(); render();
+    $("#p-link").textContent = "LINK OK"; $("#p-link").className = "ann";
+  } catch (e) { $("#p-link").textContent = "NO LINK"; $("#p-link").className = "ann bad"; }
+  setTimeout(poll, 100);
+}
+
+function render() {
+  const s = state, p = s.policy || { phase: "none" }, loaded = polLoaded(p), polMode = s.mode === "policy";
+  // policy targets: live in policy mode; a "ghost" while a dry run holds the arm
+  const tgt = p.target && (polMode || (p.dry_run && p.phase === "running")) ? p.target : null;
+  document.querySelectorAll("#modes button").forEach(b => {
+    if (b.dataset.mode === "policy") { b.hidden = !polMode; return; }
+    b.classList.toggle("on", s.mode === b.dataset.mode);
+    if (b.dataset.mode === "teleop") b.disabled = !s.leader_connected;
+  });
+  $("#p-hz").textContent = `CTRL ${s.hz} Hz` + (s.errors ? ` · ${s.errors} ERR` : "");
+  $("#p-hz").className = "ann" + (s.hz < 40 ? " warn" : "");
+  $("#p-hz").title = "Control loop rate" + (s.errors ? ` · ${s.errors} bus errors` : "");
+  $("#a-mode").textContent = s.mode === "limp" ? "TORQUE OFF" : "MODE " + String(s.mode || "–").toUpperCase();
+  $("#a-mode").className = "ann" + (["teleop", "policy", "limp"].includes(s.mode) ? " m-" + s.mode : "");
+  $("#msg").textContent = s.mode === "limp" ? "torque released" : (s.message || "");
+  $("#limp").disabled = s.mode === "limp";
+
+  for (const j of JOINTS) {
+    const row = $("#row-" + j), slider = row.querySelector("input");
+    const [lo, hi] = s.limits[j];
+    slider.min = lo; slider.max = hi;
+    slider.disabled = s.mode !== "manual";
+    if (s.mode === "manual" && dragging !== j) slider.value = s.targets[j];
+    if (s.mode === "teleop" && s.leader) slider.value = s.leader[j];
+    if (s.mode === "limp") slider.value = s.follower[j];
+    if (polMode && tgt && tgt[j] != null) slider.value = tgt[j];
+    row.querySelector(".a").textContent = s.follower[j].toFixed(1);
+    const frac = (v) => Math.min(1, Math.max(0, (v - lo) / ((hi - lo) || 1))), fa = frac(s.follower[j]), fz = frac(0);
+    row.style.setProperty("--a", fa); row.style.setProperty("--z", fz);
+    row.style.setProperty("--f0", Math.min(fa, fz)); row.style.setProperty("--f1", Math.max(fa, fz));
+    row.classList.toggle("polt", !!(polMode && tgt && tgt[j] != null));
+    const l = row.querySelector(".l");
+    const unit = j === "gripper" ? "%" : "°";
+    l.className = "l" + (polMode ? " pl" : "");
+    l.innerHTML = s.mode === "manual" ? ` &nbsp; target <b>${(+s.targets[j]).toFixed(1)}</b>${unit}`
+                : polMode ? (tgt && tgt[j] != null ? ` &nbsp; policy <b>${(+tgt[j]).toFixed(1)}</b>${unit}` : " &nbsp; policy –")
+                : (s.leader ? ` &nbsp; leader <b>${s.leader[j].toFixed(1)}</b>${unit}` : "");
+    const ghost = !polMode && tgt && tgt[j] != null ? +tgt[j] : null, gh = row.querySelector(".ghost");
+    row.querySelector(".pt").innerHTML = ghost == null ? "" : `dry-run policy <b>${ghost.toFixed(1)}</b>${unit}`;
+    gh.style.display = ghost == null ? "none" : "block";
+    if (ghost != null) gh.style.left = `calc(8px + (100% - 16px) * ${Math.min(1, Math.max(0, (ghost - lo) / ((hi - lo) || 1)))})`;
+  }
+
+  for (const n of ["wrist","scene","depth"]) {
+    const f = s.feeds[n]; if (!f) continue;
+    const t = $(`.pvt input[data-cam="${n}"]`);
+    if (t) t.closest(".pvt").hidden = !loaded;
+    setFeed(n, f.status, loaded && !!polView[n]);
+    if (n === "depth" && f.status === "ok" && f.center_mm != null) {
+      const el = $("#s-depth");
+      el.textContent = (f.center_mm ? `centre ${f.center_mm} mm` : "centre: no reading") + (f.warning ? " · replug soon" : "");
+      el.title = f.warning || "";
+      el.style.color = f.warning ? "var(--warn)" : "";
+    }
+  }
+}
+// ---- click a camera to enlarge it
+document.querySelectorAll(".view").forEach(v => { v.title = "Click to enlarge"; });
+document.querySelectorAll(".view").forEach(v => v.addEventListener("click", () => v.closest(".card").classList.toggle("big")));
+
+// ---- recording
+const recActive = (r) => r && !["idle", "error"].includes(r.phase);
+$("#recform").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (EPISODE.includes(polState().phase)) return flash("A policy episode is running: recording starts once it has ended", true);
+  const f = new FormData(e.target), body = Object.fromEntries(f.entries());
+  try {
+    const r = await post("/api/record/start", body);
+    if (!r.ok) flash("Recording: " + r.message, true);
+  } catch (err) { flash("request failed: " + err.message, true); }
+});
+const recCmd = (c) => post("/api/record/" + c).catch(() => {});
+let recNoteT = 0;
+function recNote(msg) {
+  const el = $("#recnote");
+  el.textContent = msg; el.hidden = false;
+  clearTimeout(recNoteT); recNoteT = setTimeout(() => { el.hidden = true; }, 6000);
+}
+document.querySelectorAll("[data-rc]").forEach(b => b.onclick = () => recCmd(b.dataset.rc));
+
+// ---- keys. Esc = STOP: always, even while typing in a field. Otherwise (not typing) the two panels own separate keys:
+// recording: Space (start session / start, stop & keep, next episode), ← (discard & redo), Esc also ends the session;
+// policy: P (start / stop episode), 1 / 2 / 0 (label), ⌫ (discard), T (take over), R (resume), H (start pose).
+const isTyping = (el) => el && (el.isContentEditable || /TEXTAREA|SELECT/.test(el.tagName) ||
+  (el.tagName === "INPUT" && !/checkbox|radio|range|button|submit|reset/.test(el.type)));
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" || e.key === "Esc") {
+    e.preventDefault();
+    if (!e.repeat) stopAll(true);
+    return;
+  }
+  if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+  const el = document.activeElement;
+  if (isTyping(el)) return;
+  if (!state) { if (e.key === " ") e.preventDefault(); return; }
+  const r = state.recording, p = polState(), k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  // a focused button/checkbox must not also be "clicked" by the key we handle
+  const take = () => { e.preventDefault(); if (el && el !== document.body && el.blur) el.blur(); };
+  if (k === " " || k === "ArrowLeft") {  // recording keys
+    if (recActive(r)) { take(); recCmd(k === " " ? "next" : "rerecord"); return; }
+    if (k !== " ") return;
+    take();
+    if (EPISODE.includes(p.phase)) return flash("Space is a recording key: P stops the policy episode (Esc = STOP)", true);
+    // an incomplete form: say so in the recording card, without the browser's validation pulling focus into a field
+    if (!$("#recform").checkValidity()) return recNote("Fill in Dataset and Task first: then Space starts the session");
+    $("#recform").requestSubmit();
+    return;
+  }
+  if (!POLICY_KEYS.includes(k)) return;  // policy keys
+  if (!polKeys(p)) { if (k === "p") { take(); flash("P runs a policy: Load one first", true); } return; }
+  const f = policyKey(k, p);
+  if (f) { take(); f(); }
+});
+async function loadDatasets() {
+  try {
+    const r = await (await fetch("/api/datasets")).json();
+    $("#dslist").innerHTML = r.datasets.map(d => `<option value="${d.name}">${d.episodes} episodes</option>`).join("");
+  } catch (e) {}
+}
+loadDatasets(); setInterval(loadDatasets, 5000);
+
+function renderRec(r) {
+  const on = recActive(r), banner = $("#recbanner");
+  $("#recform").querySelectorAll("input,button").forEach(el => el.disabled = on);
+  $("#p-rec").hidden = r.phase !== "recording";
+  $("#p-rec").className = "ann rec-on";
+  if (r.phase === "recording") $("#p-rec").textContent = `REC ${(r.elapsed_s || 0).toFixed(0)}s`;
+  banner.hidden = r.phase === "idle" && !r.message;
+  banner.className = "banner " + r.phase;
+  banner.querySelectorAll("button").forEach(b => b.disabled = !on);
+  const ep = `episode ${r.episode || (r.saved || 0) + 1}/${r.num_episodes || "?"} · ${r.saved || 0} saved · ${r.dataset || ""}`;
+  let ph = r.phase.toUpperCase(), info = "", frac = 0;
+  const nextLbl = { ready: "Start episode", recording: "Stop & keep",
+                    resetting: r.manual_start ? "Save & start next" : "Skip reset" }[r.phase] || "Save & next";
+  $("#recnext").firstChild.textContent = nextLbl;
+  const pEp = EPISODE.includes(polState().phase);
+  $("#rk-space").textContent = on ? nextLbl.toLowerCase() : "start session";
+  document.querySelectorAll("#rkeys .k").forEach(k => k.classList.toggle("off",
+    k.dataset.k === "space" ? pEp : k.dataset.k === "left" ? !on : false));
+  if (r.phase === "ready") info = `press Space to start · ${ep}`;
+  else if (r.phase === "recording") { info = `${(r.elapsed_s || 0).toFixed(1)} / ${r.episode_s} s · ${ep}` + (r.late ? ` · ${r.late} late` : ""); frac = (r.elapsed_s || 0) / r.episode_s; }
+  else if (r.phase === "resetting" && r.manual_start) info = `reset the scene, then press Space · ${r.pending ? "last episode will be saved" : "nothing pending"} · ${ep}`;
+  else if (r.phase === "resetting") { info = `${(r.remaining_s || 0).toFixed(0)} s left · ${r.pending ? "last episode will be saved" : "nothing pending"} · ${ep}`; frac = 1 - (r.remaining_s || 0) / Math.max(r.reset_s, 0.1); }
+  else if (on) info = ep;
+  $("#recph").textContent = ph; $("#recinfo").textContent = info;
+  $("#recbar").style.width = `${Math.min(100, Math.max(0, frac * 100))}%`;
+  const last = r.last && r.last.warning ? ` · warning, last episode: ${r.last.warning}` : "";
+  $("#recmsg").textContent = (r.message || "") + last;
+}
+
+// ---- policy deployment
+const EPISODE = ["homing", "running", "intervention"];  // the runner owns the arm in these phases
+const POLICY_KEYS = ["p", "1", "2", "0", "Backspace", "t", "r", "h"];
+const NAME_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
+const DEFAULT_TASK = "Put the cube in the cup", DEFAULT_POSE = [0, -103, 95, 52, 0, 20];
+const P = {
+  list: null, listJs: "", err: null,  // last /api/policies response
+  ran: {},                // policy id -> an episode was started this page session (dry run defaults ON until then)
+  okDry: {}, okLive: {},  // policy id -> a dry / live start was clicked (and confirmed): P may repeat it
+  applied: null,          // policy id whose sidecar defaults are in the settings
+  phase: null, phaseT: 0, want: "", flashT: 0,
+};
+const polState = () => (state && state.policy) || { phase: "none" };
+// a policy is loaded (info is set; phase error + info = its worker died). A pending episode survives an unload,
+// and "go to start pose" works without a policy, so those phases don't imply a loaded policy.
+const polLoaded = (p) => !!p && !!p.info && p.phase !== "loading";
+// the policy keys are live: a policy is loaded or loading, or an episode / start-pose move runs or waits for a label
+const polKeys = (p) => polLoaded(p) || !!p.name || ["loading", "pending", ...EPISODE].includes(p.phase);
+// the loaded policy's own state (phase shows the episode first: a pending episode hides a load in progress)
+const loadState = (p) => p.load_state || (p.phase === "loading" ? "loading" : p.info ? (p.phase === "error" ? "error" : "ready") : "none");
+const pid = (p) => `${p.backend || "local"}|${p.name || ""}`;
+const n1 = (v) => v == null || isNaN(v) ? "–" : (+v).toFixed(v >= 100 ? 0 : 1);
+
+function flash(msg, bad) {
+  const el = $("#pflash");
+  el.textContent = msg || ""; el.className = "pflash" + (msg ? (bad ? " bad" : " ok") : "");
+  clearTimeout(P.flashT);
+  if (msg) P.flashT = setTimeout(() => { el.textContent = ""; }, bad ? 9000 : 4000);
+}
+// POST to a policy endpoint; errors go to the card (never alert(): a modal would swallow Esc)
+async function polPost(path, body, okMsg) {
+  try {
+    const res = await fetch(path, { method: "POST", body: JSON.stringify(body || {}) });
+    let r = {}; try { r = await res.json(); } catch (e) {}
+    const ok = res.ok && r.ok !== false;
+    flash(ok ? (okMsg || "") : (r.message || r.error || `HTTP ${res.status}`), !ok);
+    return ok;
+  } catch (e) { flash("request failed: " + e.message, true); return false; }
+}
+
+const fmtSteps = (n) => n == null ? null : n >= 1000 ? `${+(n / 1000).toFixed(1)}k steps` : `${n} steps`;
+const fmtSize = (mb) => mb == null ? null : mb >= 1000 ? `${(mb / 1024).toFixed(1)} GB` : `${Math.round(mb)} MB`;
+// checkpoint time (the backend's local ISO time, or epoch s) -> "Oct 9 18:18" in the viewer's time zone
+function fmtDate(d) {
+  if (d == null) return null;
+  const t = typeof d === "number" ? new Date(d * 1000) : new Date(d);
+  if (isNaN(t)) return String(d).slice(0, 16).replace("T", " ");
+  return t.toLocaleString(undefined, { month: "short", day: "numeric" }) + " " +
+         t.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+// the checkpoint's own training step (push_policy.py's sidecar), else what the listing found (planned total for a bare export)
+const stepsOf = (x) => (x.deploy && x.deploy.train_step) ?? x.steps;
+const tallyTxt = (t) => t && t.total ? `${t.success}/${t.total}` : null;
+const camName = (k) => String(k).replace("observation.images.", "");
+function polLabel(x) {
+  return [x.name, fmtDate(x.created), x.type, fmtSteps(stepsOf(x)), fmtSize(x.size_mb), x.undistort ? "[undistort]" : null,
+          tallyTxt(x.tally) ? `✓ ${tallyTxt(x.tally)}` : null, x.runnable ? null : "✗ not runnable"].filter(Boolean).join(" · ");
+}
+
+async function loadPolicies() {
+  try {
+    const res = await fetch("/api/policies"); if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const js = await res.text();
+    P.err = null;
+    if (js === P.listJs) return;  // unchanged: don't rebuild the select under the user's hand
+    P.listJs = js; P.list = JSON.parse(js);
+  } catch (e) { P.err = e.message || String(e); if (P.list) return; }
+  buildSelect();
+}
+function buildSelect() {
+  const sel = $("#psel"), L = P.list, keep = sel.value || P.want;
+  sel.textContent = "";
+  if (!L) {
+    const o = new Option(P.err ? `policy list unavailable (${P.err})` : "loading policy list…", ""); o.disabled = true;
+    sel.add(o); renderDesc(); return;
+  }
+  const g = document.createElement("optgroup"); g.label = `On the Jetson · ${L.root || ""}`;
+  for (const x of L.policies || []) g.appendChild(new Option(polLabel(x), "local:" + x.name));
+  if (!(L.policies || []).length) { const o = new Option(`no policies in ${L.root || "the policy root"}`, ""); o.disabled = true; g.appendChild(o); }
+  sel.appendChild(g);
+  if ((L.remotes || []).length) {
+    const r = document.createElement("optgroup"); r.label = "Remote GPU servers";
+    for (const x of L.remotes) r.appendChild(new Option(`${x.name} · ${x.address}`, "remote:" + x.name));
+    sel.appendChild(r);
+  }
+  const vals = [...sel.options].filter(o => !o.disabled).map(o => o.value);
+  const first = (L.policies || []).find(x => x.runnable);
+  sel.value = vals.includes(keep) ? keep : first ? "local:" + first.name : (vals[0] || "");
+  renderDesc();
+}
+function selected() {
+  const v = $("#psel").value || "", i = v.indexOf(":"), kind = i > 0 ? v.slice(0, i) : null, name = v.slice(i + 1);
+  const L = P.list || {};
+  if (kind === "local") return { kind, name, pol: (L.policies || []).find(x => x.name === name) };
+  if (kind === "remote") return { kind, name, remote: (L.remotes || []).find(x => x.name === name) };
+  return { kind: null };
+}
+function renderDesc() {
+  const d = $("#pdesc"), x = selected();
+  d.textContent = "";
+  const add = (txt, cls) => { const s = document.createElement("span"); s.textContent = txt; if (cls) s.className = cls; d.appendChild(s); };
+  if (x.pol) {
+    const q = x.pol, dp = q.deploy || {};
+    for (const t of [q.type, q.dataset && `trained on ${q.dataset}`, fmtSteps(stepsOf(q)), fmtSize(q.size_mb), fmtDate(q.created) && `saved ${fmtDate(q.created)}`,
+                     q.chunk_size && `chunk ${q.chunk_size} · executes ${q.n_action_steps ?? q.chunk_size}`,
+                     (q.image_keys || []).length && `cameras ${q.image_keys.map(camName).join(", ")}`]) if (t) add(t);
+    add(q.undistort ? "undistort" : "raw frames", "badge" + (q.undistort ? " und" : ""));
+    if (dp.start_pose) add("custom start pose", "badge");
+    if (q.tally && q.tally.total) add(`${q.tally.success}/${q.tally.total} success · ${q.tally.fail} fail`, "badge ok");
+    if (!q.runnable) add("not runnable: " + (q.why_not || "unknown reason"), "badge bad");
+    if (dp.notes) add("notes: " + dp.notes, "pnotes");
+  } else if (x.remote) {
+    add(`remote policy server ${x.remote.address}: runs whatever checkpoint it was started with (./so101.sh policy-server)`);
+  }
+}
+
+// sidecar defaults, applied once each time a different policy gets loaded
+function applyDefaults(p, id) {
+  P.applied = id;
+  const entry = ((P.list && P.list.policies) || []).find(x => x.name === p.name);
+  const dp = p.deploy || (p.info && p.info.deploy) || (entry && entry.deploy) || {};
+  const live = EPISODE.includes(p.phase);  // page opened mid-episode: show what is running
+  $("#pdry").checked = live ? !!p.dry_run : !P.ran[id];
+  $("#pspeed").value = live && p.max_speed ? p.max_speed : dp.max_speed ?? 90;
+  $("#plimit").value = live && p.time_limit_s ? p.time_limit_s : dp.time_limit_s ?? 40;
+  $("#pnexec").value = dp.n_action_steps ?? "";
+  $("#psmooth").value = live && p.smoothing ? p.smoothing : (dp.smoothing === "ensemble" ? "ensemble" : "chunks");
+  $("#ptask").value = dp.task || DEFAULT_TASK;
+  $("#phome").checked = true;
+  if (p.name) {
+    P.want = ((p.backend || "local") === "local" ? "local:" : "remote:") + p.name;
+    if ([...$("#psel").options].some(o => o.value === P.want)) { $("#psel").value = P.want; renderDesc(); }
+  }
+}
+
+function startBody() {
+  const dry = $("#pdry").checked, ds = $("#precds").value.trim();
+  const num = (el, d) => el.value === "" || isNaN(+el.value) ? d : +el.value;
+  return { dry_run: dry, max_speed: num($("#pspeed"), 90), time_limit_s: num($("#plimit"), 40),
+           n_action_steps: $("#psmooth").value === "ensemble" ? null : num($("#pnexec"), null), smoothing: $("#psmooth").value, task: $("#ptask").value.trim() || DEFAULT_TASK,
+           home_first: $("#phome").checked, record: !dry && ds ? { dataset: ds } : null };
+}
+// viaKey: Space only repeats a kind of start (dry / live) that was clicked (and confirmed) for this policy
+async function polStart(viaKey) {
+  const p = polState(), id = pid(p), b = startBody();
+  if (b.record && !NAME_RE.test(b.record.dataset)) return flash("dataset name: letters, digits, '_' and '-' only", true);
+  if (viaKey) {
+    if (!(b.dry_run ? P.okDry[id] || P.okLive[id] : P.okLive[id]))
+      return flash(b.dry_run ? "Click Start once for the first dry run; then P starts the next one"
+                             : "The first live run needs the Start button (and a confirmation); then P starts the next one", true);
+  } else if (!b.dry_run && !P.okLive[id]) {
+    if (!confirm(`Run ${p.name || "the policy"} LIVE (not a dry run)?\n\nThe arm will move on its own. Keep STOP / Esc ready.`)) return;
+  }
+  const was = p.phase;
+  const ok = await polPost("/api/policy/start", b, (b.dry_run ? "dry run started" : "episode started") +
+                           (was === "pending" ? " (the pending episode was saved unlabeled)" : ""));
+  if (!ok) return;
+  P.ran[id] = true;
+  if (!viaKey) (b.dry_run ? P.okDry : P.okLive)[id] = true;
+}
+function polStop() {
+  const p = polState();
+  polPost("/api/policy/stop", {}, "episode stopped: holding pose");
+  if (p.phase === "homing") post("/api/stop").catch(() => {});  // a stand-alone start-pose move is ended by STOP
+}
+async function polOutcome(o) {
+  const note = $("#pnotein").value.trim();
+  const ok = await polPost("/api/policy/outcome", note ? { outcome: o, note } : { outcome: o },
+                           { success: "labelled: success", fail: "labelled: fail", none: "saved without a label" }[o]);
+  if (ok) { $("#pnotein").value = ""; setTimeout(loadPolicies, 300); }
+}
+const polDiscard = () => polPost("/api/policy/discard", {}, "episode discarded");
+const polTakeover = () => polPost("/api/policy/takeover", {}, "takeover: the leader arm is in control");
+const polResume = () => polPost("/api/policy/resume", {}, "policy resumed from the current pose");
+const polHome = () => polPost("/api/policy/home", { pose: null }, "moving to the start pose (30°/s)");
+
+// policy keys (only while a policy is loaded); returns the action or null
+function policyKey(key, p) {
+  const ph = p.phase, inEp = EPISODE.includes(ph), live = ph === "running" || ph === "intervention";
+  const why = (m) => () => flash(m, true);
+  switch (key) {
+    case "p":
+      if (inEp) return polStop;
+      if ((ph === "ready" || ph === "pending") && $("#pstart").disabled) return why("Start is unavailable: " + (P.why || "see the Policy panel"));
+      if ((ph === "ready" || ph === "pending") && Date.now() - P.phaseT < 1000)  // e.g. a P meant to stop an episode that just ended
+        return why("the episode just ended: press P again in a moment to start the next one");
+      if (ph === "ready" || ph === "pending") return () => polStart(true);
+      return why(ph === "loading" ? "the policy is still loading" : "Start is unavailable: " + (P.why || "see the Policy panel"));
+    case "1": return live || ph === "pending" ? () => polOutcome("success") : why("1 / 2 label an episode: only while it runs or waits for a label");
+    case "2": return live || ph === "pending" ? () => polOutcome("fail") : why("1 / 2 label an episode: only while it runs or waits for a label");
+    case "0": return ph === "pending" ? () => polOutcome("none") : null;
+    case "Backspace": return ph === "pending" ? polDiscard : null;
+    case "t": return ph === "running" && !p.dry_run ? polTakeover : why(ph === "running" ? "take over: not in a dry run (the arm holds; use the Teleop button)" : "take over: only while an episode runs");
+    case "r": return ph === "intervention" ? polResume : why("resume: only during a takeover");
+    case "h": return !$("#phomeb").disabled ? polHome : why(inEp ? "go to start pose: not while an episode runs" : "go to start pose is unavailable right now");
+  }
+  return null;
+}
+
+$("#psel").addEventListener("change", () => { P.want = $("#psel").value; renderDesc(); if (state) renderPolicy(state); });
+$("#prefresh").onclick = () => { P.listJs = ""; loadPolicies(); loadDatasets(); };
+$("#pload").onclick = () => {
+  const x = selected(); if (!x.kind) return;
+  polPost("/api/policy/load", x.kind === "remote" ? { remote: x.name } : { name: x.name }, `loading ${x.name}…`);
+};
+$("#punload").onclick = () => polPost("/api/policy/unload", {}, "policy unloaded");
+$("#pstart").onclick = () => polStart(false);
+$("#pstop").onclick = polStop;
+$("#psucc").onclick = () => polOutcome("success");
+$("#pfail").onclick = () => polOutcome("fail");
+$("#pskip").onclick = () => polOutcome("none");
+$("#pdisc").onclick = polDiscard;
+$("#ptake").onclick = polTakeover;
+$("#presume").onclick = polResume;
+$("#phomeb").onclick = polHome;
+$("#pdry").addEventListener("change", () => { if (state) renderPolicy(state); });
+$("#psmooth").addEventListener("change", () => { if (state) renderPolicy(state); });
+
+function renderPolicy(s) {
+  const p = s.policy || { phase: "none" }, ph = p.phase || "none", loaded = polLoaded(p), id = pid(p);
+  const inEp = EPISODE.includes(ph), live = ph === "running" || ph === "intervention", dry = !!p.dry_run, ls = loadState(p);
+  const recOn = recActive(s.recording), info = p.info || {};
+  if (ph !== P.phase) {  // tallies / runnable flags change around loads and labels
+    if (P.phase && ["ready", "none", "error"].includes(ph)) loadPolicies();
+    P.phase = ph; P.phaseT = Date.now();
+  }
+  if (loaded && p.name && P.applied !== id) applyDefaults(p, id);
+  if (ph === "none") P.applied = null;
+
+  // status banner
+  $("#pstat").className = "pstat " + ph + (ph === "running" && dry ? " dry" : "");
+  $("#pph").textContent = { none: "NO POLICY", loading: "LOADING…", ready: "READY", homing: "HOMING · moving to start pose",
+    running: dry ? "DRY RUN · arm holds" : "RUNNING · arm moves on its own", intervention: "TAKEOVER · leader in control",
+    pending: "EPISODE ENDED · label it", error: "ERROR" }[ph] || ph.toUpperCase();
+  const backend = !p.backend ? "" : p.backend === "local" ? "local worker" : p.backend;
+  $("#pwho").textContent = [p.name, backend].filter(Boolean).join(" · ");
+  $("#pinfo").textContent = loaded ? [info.type, info.device, info.precision, info.chunk_size && `chunk ${info.chunk_size}`,
+                                      info.fps && `${info.fps} fps`].filter(Boolean).join(" · ") : "";
+  const im = p.infer_ms || {}, showEp = (inEp && p.job !== "home") || ph === "pending";
+  const nums = [];
+  if (showEp && p.episode) nums.push(`episode <b>${+p.episode}</b>`);
+  if (showEp && p.time_limit_s) nums.push(`<b>${n1(p.elapsed_s || 0)}</b> / ${n1(p.time_limit_s)} s`);
+  if (loaded && im.last != null) nums.push(`infer <b>${n1(im.last)}</b> / ${n1(im.avg)} / ${n1(im.max)} ms`);
+  if (live && p.hz != null) nums.push(`<b>${n1(p.hz)}</b> Hz`);
+  if (loaded && p.queue != null) nums.push(`queue <b>${+p.queue}</b>`);
+  if (loaded && p.chunks != null) nums.push(`<b>${+p.chunks}</b> chunks`);
+  if (p.starved) nums.push(`<span class="w">starved ${+p.starved}</span>`);
+  if (showEp && p.max_speed) nums.push(`max ${n1(p.max_speed)}°/s`);
+  if (showEp && p.smoothing === "ensemble") nums.push("ensemble");
+  $("#pnums").innerHTML = nums.map(x => `<span>${x}</span>`).join("");  // numbers only, no server strings
+  const frac = showEp && p.time_limit_s && ph !== "homing" ? (p.elapsed_s || 0) / p.time_limit_s : 0;
+  $("#pbar").style.width = `${Math.min(100, Math.max(0, frac * 100))}%`;
+  $("#pbar").parentElement.hidden = !showEp;
+  $("#pmsg").textContent = p.message || (ph === "none" ? "Pick a policy and Load it. Nothing moves until you press Start (dry run first)." : "");
+  $("#pfault").hidden = !p.fault;
+  $("#pfaultmsg").textContent = p.fault || "";
+
+  // outcome prompt: Success/Fail while running; all four once the episode waits for a label
+  const pend = ph === "pending", rec = p.record || null;
+  $("#pout").hidden = !(live || pend);
+  $("#pout").className = "pout" + (pend ? " pending" : "");
+  $("#pq").textContent = pend
+    ? `How did episode ${p.episode || ""} go?` + (rec && rec.pending ? ` (unsaved rollout in ${rec.dataset}: a label saves it, Discard drops it)` : "")
+    : "End now and label:";
+  $("#psucc").firstChild.textContent = pend ? "✓ Success" : "✓ End: success";
+  $("#pfail").firstChild.textContent = pend ? "✗ Fail" : "✗ End: fail";
+  $("#pskip").hidden = $("#pdisc").hidden = !pend;
+
+  // settings: fixed while an episode runs; recording is off for dry runs
+  $("#psettings").querySelectorAll("input,select").forEach(el => el.disabled = inEp);
+  const dryNext = $("#pdry").checked;
+  $("#precds").disabled = inEp || dryNext;
+  $("#precds").placeholder = dryNext ? "off for dry runs" : (p.auto_record ? `auto: ${p.auto_record}` : "optional");
+  $("#phome").disabled = inEp || dryNext;
+  $("#phome").parentElement.title = dryNext ? "Dry runs never move the arm: use the Go to start pose button first if you want it there"
+                                            : "Slow move (30°/s) to the policy's start pose before the episode";
+  $("#pnexec").placeholder = info.n_action_steps ? `${info.n_action_steps} (trained)` : "as trained";
+  // a console started before the Smoothing option existed ignores it: only offer it when the backend reports "smoothing"
+  $("#psmooth").closest("label").hidden = !("smoothing" in p);
+  if (!("smoothing" in p)) $("#psmooth").value = "chunks";
+  // Ensemble averages overlapping chunks: only for ACT (deterministic); sampling policies stay on Chunks
+  const ensOk = !loaded || info.type === "act", ensOpt = $('#psmooth option[value="ensemble"]');
+  ensOpt.disabled = !ensOk;
+  ensOpt.textContent = ensOk ? "Ensemble (smoother)" : "Ensemble (ACT only)";
+  if (!ensOk && $("#psmooth").value === "ensemble" && !inEp) $("#psmooth").value = "chunks";
+  if ($("#psmooth").value === "ensemble") { $("#pnexec").disabled = true; $("#pnexec").placeholder = "not used with Ensemble"; }
+  if (info.chunk_size) $("#pnexec").max = info.chunk_size;
+
+  // buttons
+  const x = selected(), selOk = x.remote ? true : !!(x.pol && x.pol.runnable);
+  const isLoadedSel = loaded && ((x.pol && (p.backend || "local") === "local" && p.name === x.name) ||
+                                 (x.remote && p.backend === "remote:" + x.remote.address));
+  $("#pload").disabled = !selOk || inEp || ls === "loading";
+  $("#pload").textContent = isLoadedSel ? "Reload" : "Load";
+  $("#pload").title = x.pol && !x.pol.runnable ? "not runnable: " + (x.pol.why_not || "") : "";
+  $("#punload").disabled = inEp || !p.name;  // the backend names the policy while loading / ready / error
+  const why = [];
+  if (ls === "loading") why.push("loading the policy…");
+  else if (ls === "error") why.push(loaded ? "the policy backend stopped: Load it again" : "loading failed: Load again");
+  else if (!loaded) why.push("load a policy first");
+  if (p.saving) why.push("saving the last rollout…");
+  if (recOn) why.push("a teleop recording session is running: end it first");
+  if (s.mode === "limp") why.push("torque is released: switch to Manual first");
+  for (const c of ["wrist", "scene"]) { const f = s.feeds && s.feeds[c]; if (f && f.status !== "ok") why.push(`${c} camera: ${f.status}`); }
+  const canStart = loaded && ls === "ready" && (ph === "ready" || ph === "pending") && !recOn && s.mode !== "limp" && !p.saving;
+  P.why = why.join(" · ");
+  const st = $("#pstart");
+  st.disabled = !canStart;
+  st.className = "act big go" + (dryNext ? " dry" : "");
+  st.firstChild.textContent = (pend ? "\u25B6\uFE0E Start next" : "\u25B6\uFE0E Start") + (dryNext ? " dry run" : " · arm moves");
+  st.title = pend ? "Starts the next episode; the pending one is saved unlabeled first. Key: P" : "Key: P (after the first click)";
+  $("#pstop").disabled = !inEp;
+  $("#pstop").firstChild.textContent = ph === "homing" ? "■ Stop homing" : "■ Stop episode";
+  $("#ptake").hidden = ph !== "running" || dry;  // a dry run holds the arm: the backend refuses a takeover
+  $("#ptake").disabled = !s.leader_connected;
+  $("#ptake").title = s.leader_connected ? "Pause the policy and drive the follower with the leader arm (recording marks these frames)" : "leader arm is not connected";
+  $("#presume").hidden = ph !== "intervention";
+  const pose = p.start_pose || (p.deploy && p.deploy.start_pose) || DEFAULT_POSE;
+  $("#phomeb").disabled = inEp || ph === "loading" || recOn || s.mode === "limp";
+  $("#phomeb").title = `Slow move (30°/s) to [${pose.map(v => (+v).toFixed(0)).join(", ")}]`;
+
+  // notes line: why Start is blocked, rollout recording, tally
+  const note = $("#pnote"); note.textContent = "";
+  const add = (t, cls) => { const e = document.createElement("span"); e.textContent = t; if (cls) e.className = cls; note.appendChild(e); };
+  if (!canStart && !inEp && why.length) add("Start: " + why.join(" · "), "why");
+  else if (canStart && why.length) add("Caution: " + why.join(" · "), "why");
+  if (rec && rec.dataset) add(`rollouts → ${rec.dataset}: ${rec.saved || 0} saved` + (rec.pending ? " · 1 pending" : ""));
+  else if (p.auto_record) add(`real runs record to ${$("#precds").value.trim() || p.auto_record}`);
+  if (loaded && p.tally && p.tally.total) add(`this policy: ${p.tally.success}/${p.tally.total} success · ${p.tally.fail} fail`);
+  if (loaded && p.last_outcome) add(`last episode: ${p.last_outcome}`);
+  if (loaded && !inEp && !(dryNext ? P.okDry[id] || P.okLive[id] : P.okLive[id])) add(dryNext ? "first dry run: click Start (P works after that)" : "first live run: click Start and confirm (P works after that)");
+
+  // header pill
+  const pill = $("#p-pol"), sec = `${(p.elapsed_s || 0).toFixed(0)}s`;
+  let txt = null, pc = "";
+  if (p.fault) { txt = "POLICY FAULT"; pc = "fault-on"; }
+  else if (ph === "running") { txt = dry ? `DRY RUN ${sec}` : `POLICY ${sec}`; pc = dry ? "dry-on" : "pol-on"; }
+  else if (ph === "homing") { txt = "POLICY · HOMING"; pc = "pol-on"; }
+  else if (ph === "intervention") { txt = `TAKEOVER ${sec}`; pc = "take-on"; }
+  else if (pend) { txt = "LABEL EPISODE"; pc = "lbl-on"; }
+  pill.hidden = !txt; pill.textContent = txt || ""; pill.className = "ann " + pc;
+  // FAULT annunciator (policy fault / worker error) and the red tally on the cameras while frames are being recorded
+  const fault = p.fault || (ph === "error" ? p.message || "policy error" : "");
+  $("#a-fault").className = "ann " + (fault ? "fault-on" : "idle");
+  $("#a-fault").title = fault || "No fault";
+  const rollRec = live && !dry && !!(rec && rec.dataset);  // a live episode writing rollouts to a dataset
+  $("#a-rec").textContent = rollRec ? "REC ROLLOUT" : "REC";
+  $("#a-rec").className = "ann " + (rollRec ? "rec-on" : "idle");
+  $("#a-rec").title = rollRec ? `recording this episode to ${rec.dataset}` : "Not recording";
+  document.body.classList.toggle("tally", (s.recording && s.recording.phase === "recording") || rollRec);
+
+  // key legend: which policy keys do something right now
+  const kOn = {};
+  if (!recOn && polKeys(p)) Object.assign(kOn, { p: inEp || ((ph === "ready" || pend) && canStart), 1: live || pend, 2: live || pend,
+    0: pend, bs: pend, t: ph === "running" && !dry && !!s.leader_connected, r: ph === "intervention", h: !$("#phomeb").disabled });
+  document.querySelectorAll("#pkeys .k").forEach(k => k.classList.toggle("off", !kOn[k.dataset.k]));
+  $("#pk-p").textContent = inEp ? "stop episode" : pend ? "start next" : "start";
+  $("#pkctx").textContent = recOn ? "off while a recording session runs" : polKeys(p) ? "" : "active once a policy is loaded";
+
+  // recording card: no teleop recording during an episode
+  if (inEp) $("#recform").querySelectorAll("input,button").forEach(el => el.disabled = true);
+  if (inEp) $("#limp").disabled = true;
+  $("#limp").title = inEp ? "disabled while a policy episode runs (STOP first)" : "";
+  $("#recpol").hidden = !inEp;
+  $("#recpol").textContent = "A policy episode is running: recording starts once it has ended.";
+}
+
+const _render = render;
+render = function () { _render(); if (state.recording) renderRec(state.recording); renderPolicy(state); };
+
+loadPolicies(); setInterval(loadPolicies, 15000);
+poll();
+</script>
+</body>
+</html>
