@@ -85,8 +85,8 @@ wider spawns, then spawns limited to the real desk), so compare rows within a bu
   <br><sub>The co-trained policy on the real arm (overhead + wrist camera, real time, 9.6 s). <a href="docs/media/videos/10_real_arm.mp4">▶ Full step-10 video</a>: the comparison, then three successful runs.</sub>
 </p>
 
-Cube and cup were placed by hand, not on a fixed grid, and run times end when the operator labels the run. Every
-real run above was recorded by the console (both cameras, joint states, the label).
+Cube and cup were placed by hand, not on a fixed grid, and run times end when the operator labels the run. The console recorded every co-trained run after the first session (19 of 21) and the last two real-only runs
+(both cameras, joint states, the label).
 
 ---
 
@@ -99,7 +99,7 @@ real run above was recorded by the console (both cameras, joint states, the labe
 Each dot is the cube's position at the moment of the grasp in one training episode. It is computed from the arm's
 joint readings with forward kinematics ([`analysis/real_positions.py`](analysis/real_positions.py),
 [`analysis/train_positions.py`](analysis/train_positions.py)) and seen from above with the robot at the bottom.
-Violet dots are sim episodes (2,400 of 3,992 drawn) and amber dots are real demos. The rings are today's real runs:
+Violet dots are sim episodes (2,400 of 3,992 drawn) and amber dots are real demos. The rings are the 21 recorded real runs (2 real-only, 19 co-trained):
 **R** real-only, **C** real + sim, green for success and red for fail. The dashed circle is 5 cm around where the
 real-only hand hovered.
 
@@ -298,11 +298,9 @@ The rim drop showed up on the real arm too (step 10). [▶ step video](docs/medi
 
 <p align="center"><img src="docs/media/compare_real_vs_sim.gif" width="720" alt="Real-only policy hovering vs co-trained policy grasping on the real arm"></p>
 
-Two policies with the same ACT model and the same 80k training steps go on the arm. One learned from the 40 real demos
-only; the other from the same 40 plus 4,013 sim episodes.
+The same ACT model goes on the arm trained two ways: on the 40 real demos only (checkpoints at 40k and 80k steps), and on the same 40 plus 4,013 sim episodes (80k steps). The side-by-side video compares the two 80k-step policies.
 
-- **Real only:** it placed a cube on its left, but with the cube on its right near the base it hovered and never
-  closed the gripper. Only 4 real demos are within 5 cm of that spot.
+- **Real only:** it succeeded in 6 of 21 runs. In the recorded failure, with the cube on its right near the base, it hovered and never closed the gripper. Only 4 real demos are within 5 cm of that spot.
 - **Real + sim:** it grasped the cube in all 21 runs and placed it in 19, on both sides of the desk. Both misses
   bounced off the cup rim; in one, it picked the cube back up and tried again.
 
@@ -444,8 +442,8 @@ python scripts/push_policy.py ...      # package for the console (SO101_JETSON=u
 ## What made it work
 
 - **Simulate where the real data is thin.** The real demos leaned left, and the real-only policy failed on the right
-  near the base, where it had 4 demos. Randomized sim spawns put 336 episodes there, and the co-trained policy went
-  19 for 21.
+  near the base, where it had 4 demos. Randomized sim spawns put 336 episodes there. The co-trained policy went
+  19 for 21 across the desk; that exact spot is its next test.
 - **Measure the gap, then close it.** Camera intrinsics, camera height, joint zeros and the wrist-mount pose were each
   measured on the real rig. Assuming them from a stock asset was wrong every time.
 - **Data beats model size.** The biggest jumps came from data: a settle-based expert with more demos (+34 points),
