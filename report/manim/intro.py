@@ -20,7 +20,7 @@ class Intro(Scene):
         arrows = VGroup(*[Arrow(a.get_right(), b.get_left(), buff=0.2, stroke_width=6, color=GREY_A,
                                 max_tip_length_to_length_ratio=0.3) for a, b in zip(words, words[1:])])
         self.play(LaggedStart(Write(words[0]), GrowArrow(arrows[0]), Write(words[1]), GrowArrow(arrows[1]),
-                              Write(words[2]), lag_ratio=0.45), run_time=1.7)
+                              Write(words[2]), lag_ratio=0.45), run_time=1.3)
 
         # 2. title moves up and right; the photo fades in inside a frame that is drawn around it
         photo = ImageMobject("arm.png").set_height(4.1).move_to([-4.6, 1.1, 0])
@@ -28,15 +28,15 @@ class Intro(Scene):
         title = VGroup(words, arrows)
         target = title.copy().scale(0.62)
         target.next_to(photo, RIGHT, buff=0.75).align_to(photo, UP).shift(DOWN * 0.15)
-        self.play(Transform(title, target), FadeIn(photo, scale=0.96), Create(frame), run_time=0.9)
+        self.play(Transform(title, target), FadeIn(photo, scale=0.96), Create(frame), run_time=0.7)
 
         # 3. subtitle and the numbers line
         sub = VGroup(Tex("Teaching an SO-101 arm"), Tex("to put a cube in a cup")).arrange(DOWN, aligned_edge=LEFT, buff=0.22)
         sub.scale(1.05).next_to(title, DOWN, buff=0.55).align_to(title, LEFT)
         tag = Tex("40 real + 4,013 sim demos", color=GREY_B).scale(0.72)
         tag.next_to(sub, DOWN, buff=0.4).align_to(sub, LEFT)
-        self.play(Write(sub), run_time=0.9)
-        self.play(FadeIn(tag, shift=UP * 0.1), run_time=0.4)
+        self.play(Write(sub), run_time=0.7)
+        self.play(FadeIn(tag, shift=UP * 0.1), run_time=0.3)
 
         # 4. the ten steps, drawn left to right and joined by arrows
         n, gap, y = len(STEPS), 0.3, -2.45
@@ -60,12 +60,12 @@ class Intro(Scene):
             seq.append(AnimationGroup(DrawBorderThenFill(boxes[i]), Write(labels[i]), FadeIn(nums[i]), run_time=0.6))
             if i < n - 1:
                 seq.append(GrowArrow(links[i], run_time=0.25))
-        self.play(LaggedStart(*seq, lag_ratio=0.42), run_time=3.8)
+        self.play(LaggedStart(*seq, lag_ratio=0.42), run_time=2.0)
 
         # 5. legend, a nod to the last step, then hold
         legend = Tex("real", r"\qquad{}", "sim", r"\qquad{}", "compute").scale(0.62).move_to([0, -3.5, 0])  # one Tex: one baseline
         for k, c in ((0, REAL), (2, SIM), (4, COMP)):
             legend[k].set_color(c)
-        self.play(Write(legend), run_time=0.5)
-        self.play(Circumscribe(VGroup(boxes[-1], nums[-1]), color=REAL, buff=0.08), run_time=0.7)
-        self.wait(1.0)
+        self.play(Write(legend), run_time=0.3)
+        self.play(Circumscribe(VGroup(boxes[-1], nums[-1]), color=REAL, buff=0.08), run_time=0.5)
+        self.wait(0.8)

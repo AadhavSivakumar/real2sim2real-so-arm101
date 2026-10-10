@@ -19,7 +19,7 @@ next to the arm.
   <br><sub>Real arm, real time, overhead camera. Same ACT model and 80k training steps. <b>Left:</b> 40 real demos only, cube on the right near the base: it hovers and never grasps. <b>Right:</b> the same 40 real demos plus 4,013 sim episodes: it grasps and places.</sub>
 </p>
 
-▶ **Videos:** [55 s highlight reel](docs/media/videos/00_reel.mp4) · one video per pipeline step, linked in each section below.
+▶ **Videos:** [52 s highlight reel](docs/media/videos/00_reel.mp4) · one video per pipeline step, linked in each section below.
 
 ---
 
