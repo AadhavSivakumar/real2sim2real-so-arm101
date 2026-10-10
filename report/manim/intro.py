@@ -31,9 +31,9 @@ class Intro(Scene):
         self.play(Transform(title, target), FadeIn(photo, scale=0.96), Create(frame), run_time=0.9)
 
         # 3. subtitle and the numbers line
-        sub = VGroup(Tex("Teaching a low-cost SO-101 arm"), Tex("to put a cube in a cup")).arrange(DOWN, aligned_edge=LEFT, buff=0.22)
+        sub = VGroup(Tex("Teaching an SO-101 arm"), Tex("to put a cube in a cup")).arrange(DOWN, aligned_edge=LEFT, buff=0.22)
         sub.scale(1.05).next_to(title, DOWN, buff=0.55).align_to(title, LEFT)
-        tag = Tex(r"40 real + 4,013 sim demos \ $\cdot$ \ 5\,/\,6 on the real arm", color=GREY_B).scale(0.72)
+        tag = Tex("40 real + 4,013 sim demos", color=GREY_B).scale(0.72)
         tag.next_to(sub, DOWN, buff=0.4).align_to(sub, LEFT)
         self.play(Write(sub), run_time=0.9)
         self.play(FadeIn(tag, shift=UP * 0.1), run_time=0.4)
