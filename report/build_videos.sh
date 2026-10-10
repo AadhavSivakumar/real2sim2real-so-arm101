@@ -161,7 +161,7 @@ $(hdr 10 'Deploy on the real arm' 'Same ACT model and 80k training steps.  Right
 [0:v][1:v]hstack=inputs=2,fade=t=in:st=0:d=0.3[d];color=c=$BG:s=1280x720:r=30[bg];[bg][d]overlay=0:124:shortest=1,\
 $(tag e10o$i 'OVERHEAD CAMERA' 12 136 white),$(tag e10w$i 'WRIST CAMERA' 652 136 white),\
 $(tag e10r$i "Run $2   SUCCESS   $3 s" 12 564 $AMBER),\
-$(hdr 10 'Deploy on the real arm' 'Co-trained ACT v4 running on the Jetson, real time.  This session: 3 of 4 succeeded (the miss bounced off the cup rim).' e10)[v]" \
+$(hdr 10 'Deploy on the real arm' 'Co-trained ACT v4 running on the Jetson, real time.  19 of 21 runs succeeded; both misses bounced off the cup rim.' e10)[v]" \
       -map "[v]" "${ENC[@]}" "$TMP/e10_$i.mp4"
     parts+=("$TMP/e10_$i.mp4")
   done

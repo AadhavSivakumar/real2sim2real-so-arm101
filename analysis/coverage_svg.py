@@ -21,11 +21,12 @@ o.append('<g fill="var(--sim)" fill-opacity="0.28">' + "".join('<circle cx="%s" 
 o.append('<g fill="var(--real)" stroke="var(--surface)" stroke-width="1.5">' + "".join('<circle cx="%s" cy="%s" r="6"/>' % P(*p) for p in real) + '</g>')
 fx, fy = P(*FAIL)
 o.append(f'<circle cx="{fx}" cy="{fy}" r="50" fill="none" stroke="var(--bad)" stroke-width="2" stroke-dasharray="6 5"/>')
-for r in runs:
+# real-only runs and failures on top, so overlapping co-trained successes don't hide them
+for r in sorted(runs, key=lambda r: ("real40" in r["ds"], r["outcome"] != "success")):
     x, y = P(r["x"], r["y"]); col = "var(--good)" if r["outcome"] == "success" else "var(--bad)"
     letter = "R" if "real40" in r["ds"] else "C"
-    o.append(f'<circle cx="{x}" cy="{y}" r="11" fill="var(--surface)" stroke="{col}" stroke-width="3"/>'
-             f'<text x="{x}" y="{y + 4.5}" text-anchor="middle" font-size="13" font-weight="700" fill="{col}" font-family="var(--f-mono)">{letter}</text>')
+    o.append(f'<circle cx="{x}" cy="{y}" r="9.5" fill="var(--surface)" stroke="{col}" stroke-width="2.6"/>'
+             f'<text x="{x}" y="{y + 4}" text-anchor="middle" font-size="11.5" font-weight="700" fill="{col}" font-family="var(--f-mono)">{letter}</text>')
 o.append(f'<rect x="{x0 - 22}" y="{y0 - 4}" width="44" height="40" rx="5" fill="var(--comp)"/>'
          f'<text x="{x0}" y="{y0 + 21}" text-anchor="middle" font-size="12" fill="var(--surface)" font-family="var(--f-mono)">base</text>')
 o.append(f'<text x="14" y="26" font-size="14" fill="var(--muted)" font-family="var(--f-mono)">robot\'s left</text>'

@@ -19,7 +19,7 @@ N=$(( ${#SEGS[@]} + 2 )); LAST=$(( N - 1 ))
 F="[0:v]fps=30,format=yuv420p,setsar=1[c0];"
 for i in $(seq 1 ${#SEGS[@]}); do F+="[$i:v]fps=30,format=yuv420p,setsar=1,fade=t=in:st=0:d=0.25[c$i];"; done
 F+="[$LAST:v]$(dt BOLD r9a '88%' 60 $AMBER 120 170),$(dt REG r9b 'sim success on 50 held-out randomized scenes' 28 white 330 196),\
-$(dt BOLD r9c '5 / 6' 60 $AMBER 120 270),$(dt REG r9d 'runs on the real arm  (real-only baselines: 6 / 21)' 28 white 330 296),\
+$(dt BOLD r9c '19 / 21' 60 $AMBER 120 270),$(dt REG r9d 'runs on the real arm  (real-only baselines: 6 / 21)' 28 white 330 296),\
 $(dt BOLD r9e '40 ms' 60 $AMBER 120 370),$(dt REG r9f 'policy inference on a Jetson Orin Nano' 28 white 330 396),\
 $(dt REG r9g '4,013 sim demos + 40 real demos  ·  trained on one H100' 22 white@0.7 120 500),\
 fade=t=in:st=0:d=0.4,fade=t=out:st=3.9:d=0.6,format=yuv420p,setsar=1[c$LAST];"

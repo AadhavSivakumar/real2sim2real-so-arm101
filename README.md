@@ -11,7 +11,7 @@ Trained on 40 real demonstrations alone, it handles cubes where those demos are 
 thin, like a cube on its right near the base. **Simulation fills the gaps.** A 45-second phone video of the desk
 becomes a Gaussian splat. The splat becomes the background of an Isaac Sim scene calibrated to the real cameras,
 and that scene produces thousands of randomized demonstrations across the whole desk. Co-trained on both, the same
-model succeeds in **5 of 6 real runs**, against **6 of 21** for the real-only versions. It runs on a Jetson Orin Nano
+model succeeds in **19 of 21 real runs**, against **6 of 21** for the real-only versions. It runs on a Jetson Orin Nano
 next to the arm.
 
 <p align="center">
@@ -52,7 +52,7 @@ next to the arm.
 | | |
 |---|---|
 | **88%** | sim success on 50 held-out randomized scenes (ACT v4, 80k steps) |
-| **5 / 6** | real-arm runs with the co-trained policy (2 / 2, then 3 / 4 in a second session) |
+| **19 / 21** | real-arm runs with the co-trained policy, over three sessions (2 / 2, 3 / 4, 14 / 15) |
 | **6 / 21** | real-arm runs for the real-only baselines (same 40 real demos) |
 | **336 vs 4** | sim episodes vs real demos within 5 cm of the spot where the real-only policy failed |
 | **4,013 + 40** | sim + real demos behind the co-trained policy |
@@ -73,7 +73,7 @@ wider spawns, then spawns limited to the real desk), so compare rows within a bu
 | SmolVLA v3a | same | 68% | – |
 | ACT v4, 40k steps | + splat DART demos, takeovers, 40 real | 70% plain · 74% splat | – |
 | ***Sim build 3: spawns limited to the real desk*** | | | |
-| **ACT v4, 80k steps** | same as above (trained before the desk fix) | **88%** | **5 / 6** |
+| **ACT v4, 80k steps** | same as above (trained before the desk fix) | **88%** | **19 / 21** |
 | ACT v4b, 40k steps | off-desk episodes removed | 72% | – |
 | ***Real data only*** | | | |
 | ACT real-only | 10 real demos | – | 0 / 2 |
@@ -110,10 +110,10 @@ real-only hand hovered.
 
 The real demos cluster on the robot's left and leave gaps on the right. The real-only policy failed in one of those
 gaps: it reached the cube, hovered, and never closed the gripper. The randomized sim spawns cover the whole desk,
-and the co-trained policy grasped the cube in all 6 of its runs and placed it in 5. Its successful runs were also
-shorter: 13.1 s on average against 17.5 s for the real-only policies.
+and the co-trained policy grasped the cube in all 21 of its runs and placed it in 19. Its successful runs were also
+shorter: 14.2 s on average against 17.5 s for the real-only policies.
 
-*Caveat:* the co-trained policy grasped cubes right of center (6–17° right) but has not yet been tried at the exact
+*Caveat:* the co-trained policy succeeded with cubes up to 32° right of center but has not yet been tried at the exact
 spot of the real-only failure (54° right, close to the base). That run is the next test. Sim points past the right
 edge of the desk are spawns that the desk fix ([step 6](#6-audit-the-data-before-training-on-it)) removed from
 later data.
@@ -303,10 +303,10 @@ only; the other from the same 40 plus 4,013 sim episodes.
 
 - **Real only:** it placed a cube on its left, but with the cube on its right near the base it hovered and never
   closed the gripper. Only 4 real demos are within 5 cm of that spot.
-- **Real + sim:** it grasped the cube in all 6 runs and placed it in 5, including three cubes right of center. The one
-  miss bounced off the cup rim.
+- **Real + sim:** it grasped the cube in all 21 runs and placed it in 19, on both sides of the desk. Both misses
+  bounced off the cup rim; in one, it picked the cube back up and tried again.
 
-<p align="center"><img src="docs/media/real_start_layouts.jpg" width="560" alt="Starting layouts of the four recorded co-trained runs"><br><sub>Starting layouts of the four recorded co-trained runs (3 successes, 1 rim bounce).</sub></p>
+<p align="center"><img src="docs/media/real_start_layouts.jpg" width="560" alt="Starting layouts of the four co-trained runs in the second session"><br><sub>Starting layouts of the four co-trained runs in the second session (3 successes, 1 rim bounce).</sub></p>
 
 Policies are packaged and pushed to the Jetson with [`scripts/push_policy.py`](scripts/push_policy.py) (an optional
 `so101_deploy.json` sidecar carries undistortion, start pose and speed limit). The console then runs them; see
@@ -445,7 +445,7 @@ python scripts/push_policy.py ...      # package for the console (SO101_JETSON=u
 
 - **Simulate where the real data is thin.** The real demos leaned left, and the real-only policy failed on the right
   near the base, where it had 4 demos. Randomized sim spawns put 336 episodes there, and the co-trained policy went
-  5 for 6.
+  19 for 21.
 - **Measure the gap, then close it.** Camera intrinsics, camera height, joint zeros and the wrist-mount pose were each
   measured on the real rig. Assuming them from a stock asset was wrong every time.
 - **Data beats model size.** The biggest jumps came from data: a settle-based expert with more demos (+34 points),
