@@ -10,7 +10,7 @@ A low-cost [SO-101](https://github.com/TheRobotStudio/SO-ARM100) arm learns to p
 Trained on 40 real demonstrations alone, it handles cubes where those demos are dense and fails where they are
 thin, like a cube on its right near the base. **Simulation fills the gaps.** A 45-second phone video of the desk
 becomes a Gaussian splat. The splat becomes the background of an Isaac Sim scene calibrated to the real cameras,
-and that scene produces thousands of randomized demonstrations across the whole desk. Co-trained on both, the same
+and the simulator produces thousands of randomized demonstrations across the whole desk, more than 1,200 of them rendered inside the splat. Co-trained on both, the same
 model succeeds in **19 of 21 real runs**, against **6 of 21** for the real-only versions. It runs on a Jetson Orin Nano
 next to the arm.
 
@@ -19,7 +19,7 @@ next to the arm.
   <br><sub>Real arm, real time, overhead camera. Same ACT model and 80k training steps. <b>Left:</b> 40 real demos only, cube on the right near the base: it hovers and never grasps. <b>Right:</b> the same 40 real demos plus 4,013 sim episodes: it grasps and places.</sub>
 </p>
 
-▶ **Videos:** [52 s highlight reel](docs/media/videos/00_reel.mp4) · one video per pipeline step, linked in each section below.
+▶ **Videos:** [55 s highlight reel](docs/media/videos/00_reel.mp4) · one video per pipeline step, linked in each section below.
 
 ---
 

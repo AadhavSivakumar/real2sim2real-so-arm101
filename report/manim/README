@@ -2,3 +2,5 @@ Reel title card (3Blue1Brown style; intro_v1_flat.py is the earlier flat version
   docker run --rm --user $(id -u):$(id -g) -v $PWD:/manim -w /manim manimcommunity/manim:v0.19.0 \
     manim -qh --fps 30 -r 1280,720 --disable_caching --media_dir /manim/media intro.py Intro
 arm.png = IMG_3527 at 13.2 s, tone-mapped, crop 900x960+80+470, rounded corners.
+
+Reel closing card: scene Outro in outro.py, same command with "outro.py Outro"; copy to ../out/outro_manim.mp4.
